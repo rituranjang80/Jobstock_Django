@@ -440,5 +440,7 @@ docker run -d -p 80:80 --name ai-crm ai-crm-frontend:latet
  git switch  origin/sr-uisetup
  sudo  apt install python3.10-venv
  sudo apt install python3-pip
+
+ please find the method Process All pending on page "http://localhost:8000/rpo-dashboard/" please give arictechure
                                  
                                 
