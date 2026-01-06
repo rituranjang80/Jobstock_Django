@@ -558,12 +558,17 @@ class ResumeJobMatchingService(BaseService):
                     jobs_query = jobs_query.filter(job_type_id=filters['job_type'])
             
             jobs = jobs_query.select_related('job_category', 'job_type', 'experience_required')
-            
+
             results = []
-            for job in jobs:
-                match_result = cls.match_resume_to_job(job.id, resume_id, user)
-                if match_result.success:
+            match_result = cls.match_resume_to_job(114, resume_id, user)
+            if match_result.success:
                     results.append(match_result.data)
+            
+            # results = []
+            # for job in jobs:
+            #     match_result = cls.match_resume_to_job(job.id, resume_id, user)
+            #     if match_result.success:
+            #         results.append(match_result.data)
             
             return ApiResponse.success(
                 data={
