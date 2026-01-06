@@ -442,5 +442,38 @@ docker run -d -p 80:80 --name ai-crm ai-crm-frontend:latet
  sudo apt install python3-pip
 
  please find the method Process All pending on page "http://localhost:8000/rpo-dashboard/" please give arictechure
-                                 
-                                
+ 
+ Add more for perfect product
+ please create the Next.js page of following response on root folder please use the Next.js 
+ Next.js perfect design archeticture for easisy code maintain and resuable component , and constant varaible 
+ 
+ 
+ Add more for perfect product
+ please create the Next.js page of following response on root folder please use the Next.js 
+ Next.js perfect design archeticture for easisy code maintain and resuable component , and constant varaible in current workspace  folder path is UI and api response is
+ http://localhost:8000/api/resumes/rpo/resume-list/
+ please maintain the message file constant file 
+ 
+ 
+ 
+ please add more for perfect product
+ please write the rest api for all function also implement the swagger with tag and section "Auth"
+ 
+ lease implement the swagger tag "tags='Job'" so all are group in swagger in page  "App\views\job_api_views.py"
+ 
+  result = self.process_resume(
+                file_path=absolute_path,
+                user=resume_record.user,
+                resume_record_id=resume_record.id,
+                profile=resume_record.profile
+            ) In function please add the parameter resume_record in function and calling
+       
+ Please write the rest api with authencation and swagger implement with tag resume_managment please add update our self which is require for perfection
+of function
+@login_required
+@require_http_methods(["GET", "POST"])
+def rpo_resume_upload(request):
+
+
+How to use call stack
+                              
