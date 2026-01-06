@@ -3,6 +3,7 @@ API Views for Navigation System
 Provides REST endpoints for navigation data
 """
 from rest_framework.decorators import api_view, permission_classes
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -12,6 +13,7 @@ from App.services.navigation_service import NavigationService
 from App.utils.response import ApiResponse
 
 
+@swagger_auto_schema(method='get', tags=["Auth"], operation_summary="Get user navigation", operation_description="Get navigation menu for the authenticated user.")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_navigation(request):
@@ -43,6 +45,7 @@ def get_user_navigation(request):
     return JsonResponse(result.to_dict(), status=result.status_code)
 
 
+@swagger_auto_schema(method='get', tags=["Auth"], operation_summary="Get dashboard widgets", operation_description="Get dashboard widgets for the authenticated user.")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_dashboard_widgets(request):
@@ -56,6 +59,7 @@ def get_dashboard_widgets(request):
     return JsonResponse(result.to_dict(), status=result.status_code)
 
 
+@swagger_auto_schema(method='get', tags=["Auth"], operation_summary="Get quick actions", operation_description="Get quick action buttons for the authenticated user.")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_quick_actions(request):
@@ -69,6 +73,7 @@ def get_quick_actions(request):
     return JsonResponse(result.to_dict(), status=result.status_code)
 
 
+@swagger_auto_schema(method='post', tags=["Auth"], operation_summary="Update dashboard preferences", operation_description="Update user's dashboard preferences.")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_dashboard_preferences(request):
@@ -101,6 +106,7 @@ def get_navigation_json(request):
     return JsonResponse(result.to_dict(), status=getattr(result, 'status_code', 200))
 
 
+@swagger_auto_schema(method='get', tags=["Auth"], operation_summary="Get navigation stats", operation_description="Get navigation statistics for the user.")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_navigation_stats(request):

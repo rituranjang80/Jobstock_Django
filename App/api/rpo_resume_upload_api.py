@@ -15,6 +15,7 @@ class RPOResumeUploadAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="Upload one or more resumes for a job and resume source.",
+        tags=["rpo_admin"],
         manual_parameters=[
             openapi.Parameter(
                 name='resumes',

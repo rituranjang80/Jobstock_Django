@@ -11,6 +11,7 @@ class RPOResumeListAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="List uploaded resumes with filters, sorting, and pagination",
+        tags=["rpo_admin"],
         manual_parameters=[
             openapi.Parameter('limit', openapi.IN_QUERY, description="Page size", type=openapi.TYPE_INTEGER),
             openapi.Parameter('offset', openapi.IN_QUERY, description="Offset", type=openapi.TYPE_INTEGER),
