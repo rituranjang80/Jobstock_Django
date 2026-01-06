@@ -239,7 +239,8 @@ class ResumeProcessingService:
                       file_path: str,
                       user: User,
                       resume_record_id: Optional[int] = None,
-                      profile: Optional[Profile] = None) -> Dict[str, Any]:
+                      profile: Optional[Profile] = None,
+                      resume_record: Optional[ResumeProcessing] = None) -> Dict[str, Any]:
         """
         Complete resume processing workflow
         
@@ -248,6 +249,7 @@ class ResumeProcessingService:
             user: User instance who owns the resume
             resume_record_id: Optional existing ResumeProcessing ID
             profile: Optional Profile instance to associate
+            resume_record: Optional ResumeProcessing instance to use directly
             
         Returns:
             Dictionary with:
@@ -258,37 +260,36 @@ class ResumeProcessingService:
                 'error': str (if failed)
             }
         """
-        resume_record = None
-        
         try:
             # Get or create resume record
-            if resume_record_id:
+            if resume_record is None and resume_record_id:
                 resume_record = ResumeProcessing.objects.get(id=resume_record_id)
-            
+
             # Update status to processing
             if resume_record:
                 resume_record.status = 'processing'
                 resume_record.processing_started_at = timezone.now()
                 resume_record.save()
-            
+
             # Extract data from resume
             extracted_data = self.extract_resume_data(file_path)
-            
+
             # Update database record
             if resume_record:
                 resume_record = self.update_resume_record(resume_record, extracted_data)
-            
+
             # Auto-match resume to jobs after successful processing
             if resume_record and resume_record.status == 'completed':
                 try:
                     from App.services.resume_matching_service import ResumeJobMatchingService
-                    
+
                     # Match to all active jobs
                     match_result = ResumeJobMatchingService.match_resume_to_all_jobs(
                         resume_id=resume_record.id,
-                        user=user
+                        user=user,
+                        resume_record=resume_record
                     )
-                    
+
                     if match_result.success:
                         extracted_data['matching_info'] = {
                             'total_matches': match_result.data.get('total_jobs_matched', 0),
@@ -300,21 +301,21 @@ class ResumeProcessingService:
                         'matches_created': False,
                         'error': str(match_error)
                     }
-            
+
             return {
                 'success': True,
                 'resume_record': resume_record,
                 'extracted_data': extracted_data,
                 'error': None
             }
-            
+
         except Exception as e:
             import traceback
             import sys
-            
+
             error_msg = str(e)
             error_type = type(e).__name__
-            
+
             # Capture detailed error information
             error_details = {
                 'error_type': error_type,
@@ -324,7 +325,7 @@ class ResumeProcessingService:
                 'timestamp': datetime.now().isoformat(),
                 'python_version': sys.version,
             }
-            
+
             # Add file-specific information if available
             try:
                 from pathlib import Path
@@ -345,7 +346,7 @@ class ResumeProcessingService:
                 error_details['file_info'] = {
                     'error': str(file_error)
                 }
-            
+
             # Update record as failed if exists
             if resume_record:
                 resume_record.status = 'failed'
@@ -353,7 +354,7 @@ class ResumeProcessingService:
                 resume_record.error_details = error_details
                 resume_record.processing_completed_at = timezone.now()
                 resume_record.save()
-            
+
             return {
                 'success': False,
                 'resume_record': resume_record,
@@ -388,19 +389,20 @@ class ResumeProcessingService:
         for resume_record in resume_records:
             if verbose:
                 print(f"Processing: {resume_record.original_filename}")
-            
+
             # Build absolute path from relative path
             from django.conf import settings
             import os
             absolute_path = os.path.join(settings.BASE_DIR, resume_record.resume_path)
-            
+
             result = self.process_resume(
                 file_path=absolute_path,
                 user=resume_record.user,
                 resume_record_id=resume_record.id,
-                profile=resume_record.profile
+                profile=resume_record.profile,
+                resume_record=resume_record
             )
-            
+
             if result['success']:
                 successful += 1
                 if verbose:
@@ -409,7 +411,7 @@ class ResumeProcessingService:
                 failed += 1
                 if verbose:
                     print(f"  ❌ Failed: {result['error']}")
-            
+
             results.append(result)
         
         return {
