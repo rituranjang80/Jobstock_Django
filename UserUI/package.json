@@ -1,0 +1,32 @@
+{
+  "name": "job-stock",
+  "version": "1.0.0",
+  "description": "JobStock - Next Js Job Listing, Job Portal Landing & Admin Dashboard Template",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.7",
+    "google-map-react": "^2.2.5",
+    "next": "^15.5.9",
+    "rc-slider": "^11.1.8",
+    "react": "19.1.0",
+    "react-apexcharts": "^1.7.0",
+    "react-countup": "^6.5.3",
+    "react-dom": "19.1.0",
+    "react-select": "^5.10.2",
+    "react-simple-wysiwyg": "^3.4.0",
+    "swiper": "^11.2.10"
+  },
+  "devDependencies": {
+    "@types/google-map-react": "^2.1.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
