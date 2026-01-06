@@ -14,6 +14,7 @@ class DropdownListAPI(APIView):
         manual_parameters=[
             openapi.Parameter('group', openapi.IN_QUERY, description="Dropdown group text", type=openapi.TYPE_STRING, required=True),
         ],
+        tags=['Dropdowns'],
         responses={200: DropdownMasterSchema(many=True)}
     )
     def get(self, request):

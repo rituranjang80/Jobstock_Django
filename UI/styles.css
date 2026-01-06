@@ -1,0 +1,18 @@
+/* Additional styles for resume list */
+.resume-list {
+  list-style: none;
+  padding: 0;
+  margin: 2em 0 0 0;
+}
+.resume-item {
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 1em 1.5em;
+  margin-bottom: 1em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.error {
+  color: #c00;
+  font-weight: bold;
+  margin-top: 1em;
+}
