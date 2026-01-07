@@ -442,3 +442,19 @@ docker run -d -p 80:80 --name ai-crm ai-crm-frontend:latet
  sudo apt install python3-pip
                                  
                                 
+	How to host application with encryted code
+	
+	I want to change the table name user to users in database so please change the whole project user to users in relationship and everywhere plase add or more perfect
+	
+	please run the application and resolve all the issue "  from routers import (
+    ...<15 lines>...
+    )
+  File "C:\project\aicrm\routers\__init__.py", line 2, in <module>
+    from .users import router as users_router
+  File "C:\project\aicrm\routers\users.py", line 11, in <module>
+    from services.user_service import UserService
+  File "C:\project\aicrm\services\user_service.py", line 9, in <module>
+    from services.role_service import RoleService
+  File "C:\project\aicrm\services\role_service.py", line 13, in <module>
+    from utils.events import dispatch_role_change, dispatch_user_role_change
+ImportError: cannot import name 'dispatch_user_role_change' from 'utils.events' (C:\project\aicrm\utils\events.py)"
