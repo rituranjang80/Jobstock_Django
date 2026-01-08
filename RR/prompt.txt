@@ -515,3 +515,122 @@ async def upload_csv2(
     return super().execute(query)           ^^^^^^^^^^^^^^^^^^^^^^
 django.db.utils.OperationalError: duplicate column name: job_id
   Applying App.0017_auto_20251225_1538...
+  
+  
+  docker run -d -p 80:80 --name ai-crm-frontend ai-crm-frontend:latest
+   docker ps
+   docker build -t ai-crm-frontend .
+    git pull --no-rebase origin sr-uisetup
+	git fetch
+	 docker run --env-file .env -d -p 8000:8000 aicrm_backhand
+	 docker stop 11e0e03c8404
+	 docker build -t aicrm_backhand .
+	  git pull --no-rebase origin dat-p
+	  git fetch
+	  git branch
+	   docker run --env-file .env -d -p 8000:8000 aicrm_backhand
+	    git switch -c sr-uisetup origin/develop
+		 git switch -c develop origin/develop
+
+
+
+please correct the code for sending notification code to chorme server
+
+
+
+
+like "routers\user_push_notification_db.py" we want all thing implement "routers\customer_import_notification_db.py" but all logic in service and proper send the websocket message "routers\customer_import_notification_db.py"
+
+
+your code provided not correct pleaee see the file "routers\user_push_notification_db.py"  here code is " try:
+        user_id = str(current_user.user_id) if hasattr(current_user, 'user_id') else str(current_user)
+        # Get file paths from config or DB (prefer DB config for flexibility)
+        try:
+            data_file_path, mapping_file_path, _ = get_import_file_paths(db_session=db, group_name="ImportUser")
+        except Exception as e:
+            #raise HTTPException(status_code=400, detail="Invalid configuration: UserImport.FileUpload not found"+str(e))
+            raise HTTPException(status_code=400, detail=str(e))
+            " 
+but file "routers\customer_import_notification_db.py" not correct logic
+please implement all login as "routers\user_push_notification_db.py" but all things in services
+
+
+
+it not working as "routers\user_push_notification_db.py" please correct the "routers\customer_import_notification_db.py" all logic must be in services
+error_details
+: 
+"type object 'BaseResponse' has no attribute 'success'"
+message
+: 
+"An error occurred while processing your request."
+
+
+it not working as "routers\user_push_notification_db.py" please correct the "routers\customer_import_notification_db.py" all logic must be in services
+api not send the websocket url and and websocket unable send message to client please fellow the logic of  "routers\user_push_notification_db.py"  but allthing in webservice and small function generic and reusable
+
+
+it not proper working like "routers\user_push_notification_db.py"  first it send the respone then connect the websocket  and websocket give the message to client 
+{
+    "status_code": 200,
+    "message": "user import started in background: c:\\config\\customer.csv",
+    "error_details": null,
+    "more_error_details": null,
+    "data": {
+        "success": true,
+        "job_id": "8d1424bd-70cc-4e08-8ec7-3c4a36663c24",
+        "file_name": "c:\\config\\customer.csv",
+        "user_id": "1aaa",
+        "websocket_url": "/notifications/ws/1aaa",
+        "instructions": "Connect to WebSocket for real-time updates. Notifications are also saved in database."
+		
+		please do all things as "routers\customer_import_notification_db.py"
+    }
+}
+
+
+please also implement the progess logic that send the message to web socket as ""routers\user_push_notification_db.py"
+
+ progress = float((i + len(batch)) / total_records * 100)
+                
+                # Create PROGRESS notification in DB (only every 20% or last batch to reduce overhead)
+                if progress % 0.01 < (batch_size / total_records * 100) or batch_num == total_batches:
+                    progress_notification = NotificationService.create_notification(db, NotificationCreate(
+                        user_id=user_id,
+                        title=f"Import Progress: {int(progress)}%",
+                        message=f"Inserted {inserted_count}/{total_records} records, {error_count} failed",
+                        notification_type=NotificationType.INFO,
+                        priority=NotificationPriority.LOW,
+                        extra_data=json.dumps({
+                            "job_id": job_id,
+                            "progress_percent": progress,
+                            "inserted_so_far": inserted_count,
+                            "total": total_records,
+                            "batch": batch_num,
+                            "total_batches": total_batches
+                        })
+                    ))
+                    
+
+                    await send_ws_notification(user_id, {
+                        "id": progress_notification.id,
+                        "type": "PROGRESS_UPDATE",
+                        "job_id": job_id,
+                        "message": progress_notification.message,
+                        "progress_percent": progress,
+                        "inserted_so_far": inserted_count,
+                        "total": total_records,
+                        "batch": batch_num,
+                        "total_batches": total_batches,
+                        "timestamp": progress_notification.created_at.isoformat()
+                    })
+                    
+                    NotificationService.mark_as_sent(db, progress_notification.id)
+                
+                # Yield to event loop to prevent blocking other API requests (reduce sleep for better throughput)
+                await asyncio.sleep(0.1)
+				
+				please implement in " "routers\customer_import_notification_db.py" 
+
+
+please write the command for prompt Enginner of below data that LLM easily understand , and give the Answer please do perfect for prompt enginner 
+please create a csv file for every question ADD COLOUMN which is eaisy describe 
