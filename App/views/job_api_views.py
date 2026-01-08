@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
+from drf_yasg.utils import swagger_auto_schema
 
 from App.services.enhanced_job_service import job_service
 from App.services.job_application_service import application_service
@@ -25,6 +26,7 @@ from App.serializers.job_serializers import (
 
 # ==================== JOB ENDPOINTS ====================
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='List and search jobs', operation_description='List and search jobs with filters.')
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def job_list_api(request):
@@ -73,6 +75,7 @@ def job_list_api(request):
     return Response(result)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get job details', operation_description='Get job details.')
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def job_detail_api(request, job_id):
@@ -88,6 +91,7 @@ def job_detail_api(request, job_id):
         return Response(result, status=status.HTTP_404_NOT_FOUND)
 
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Create job', operation_description='Create a new job posting.')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def job_create_api(request):
@@ -123,6 +127,7 @@ def job_create_api(request):
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(methods=['put', 'patch'], tags=['Job'], operation_summary='Update job', operation_description='Update a job posting.')
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def job_update_api(request, job_id):
@@ -152,6 +157,7 @@ def job_update_api(request, job_id):
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='delete', tags=['Job'], operation_summary='Delete job', operation_description='Delete/deactivate a job posting.')
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def job_delete_api(request, job_id):
@@ -173,6 +179,7 @@ def job_delete_api(request, job_id):
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def my_jobs_api(request):
@@ -197,6 +204,7 @@ def my_jobs_api(request):
     return Response(result)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get job analytics', operation_description='Get job analytics.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def job_analytics_api(request, job_id):
@@ -214,6 +222,7 @@ def job_analytics_api(request, job_id):
 
 # ==================== JOB BOARD INTEGRATION ENDPOINTS ====================
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Publish job to boards', operation_description='Publish a job to external job boards.')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def job_publish_to_boards_api(request):
@@ -241,6 +250,7 @@ def job_publish_to_boards_api(request):
     return Response(result)
 
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Sync job to boards', operation_description='Sync job updates to all external boards.')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def job_sync_to_boards_api(request, job_id):
@@ -252,6 +262,7 @@ def job_sync_to_boards_api(request, job_id):
     return Response(result)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Fetch external applications', operation_description='Fetch applications from external job boards.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def job_fetch_external_applications_api(request, job_id):
@@ -267,6 +278,7 @@ def job_fetch_external_applications_api(request, job_id):
 
 # ==================== APPLICATION ENDPOINTS ====================
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Apply for job', operation_description='Submit a job application.')
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def job_apply_api(request):
@@ -318,6 +330,7 @@ def job_apply_api(request):
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get job applications', operation_description='Get applications for a job.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def job_applications_api(request, job_id):
@@ -348,6 +361,7 @@ def job_applications_api(request, job_id):
         return Response(result, status=status.HTTP_404_NOT_FOUND)
 
 
+@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get application details', operation_description='Get application details.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def application_detail_api(request, application_id):
@@ -366,6 +380,7 @@ def application_detail_api(request, application_id):
         return Response(result, status=status.HTTP_404_NOT_FOUND)
 
 
+@swagger_auto_schema(method='patch', tags=['Job'], operation_summary='Update application status', operation_description='Update application status.')
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def application_update_status_api(request, application_id):
@@ -398,6 +413,7 @@ def application_update_status_api(request, application_id):
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Bulk update application status', operation_description='Bulk update application statuses.')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def applications_bulk_update_status_api(request):
@@ -428,6 +444,7 @@ def applications_bulk_update_status_api(request):
 
 # ==================== WEBHOOK ENDPOINT ====================
 
+@swagger_auto_schema(method='post', tags=['Job'], operation_summary='External application webhook', operation_description='Receive application from external job board.')
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Secure this with API key validation in production
 def external_application_webhook(request, board):

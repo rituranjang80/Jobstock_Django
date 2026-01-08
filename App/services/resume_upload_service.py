@@ -372,6 +372,7 @@ class ResumeUploadService:
         Returns:
             ApiResponse with processing results
         """
+        job_id=114
         try:
             # Build query
             query = {'user': user, 'status': 'pending'}

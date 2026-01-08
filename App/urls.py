@@ -8,7 +8,13 @@ urlpatterns = [
     path("api/", include('App.urls_api_navigation')),
     path("api/resumes/", include('App.urls_api_resume')),
     path("api/menu/", include('App.urls_api_menu')),
+    path("api/auth/", include('App.urls_api_auth')),
+
+    # Swagger and Redoc API docs
+    path("api/docs/", include('App.urls_swagger')),
     path("api/settings/", include('App.urls_api_setting')),
+    # Resume Management API
+    path("api/v2/", include('App.api.urls')),
     # Job Management (MVT & API)
     path("", include('App.urls_job_management')),
     

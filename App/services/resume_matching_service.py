@@ -533,7 +533,7 @@ class ResumeJobMatchingService(BaseService):
             return ApiResponse.server_error(f"Error in matching process: {str(e)}")
     
     @classmethod
-    def match_resume_to_all_jobs(cls, resume_id: int, user=None, filters: Dict = None) -> ApiResponse:
+    def match_resume_to_all_jobs(cls, resume_id: int, user=None, filters: Dict = None,resume_record: Optional[ResumeProcessing] = None) -> ApiResponse:
         """
         Match a resume to all active jobs (or filtered jobs)
         
@@ -546,7 +546,7 @@ class ResumeJobMatchingService(BaseService):
             ApiResponse with list of matches
         """
         try:
-            resume = ResumeProcessing.objects.get(id=resume_id)
+           # resume = ResumeProcessing.objects.get(id=resume_id)
             
             # Get jobs
             jobs_query = Job.objects.filter(is_active=True)
@@ -558,12 +558,17 @@ class ResumeJobMatchingService(BaseService):
                     jobs_query = jobs_query.filter(job_type_id=filters['job_type'])
             
             jobs = jobs_query.select_related('job_category', 'job_type', 'experience_required')
-            
+
             results = []
-            for job in jobs:
-                match_result = cls.match_resume_to_job(job.id, resume_id, user)
-                if match_result.success:
+            match_result = cls.match_resume_to_job(resume_record.job_id, resume_id, user)
+            if match_result.success:
                     results.append(match_result.data)
+            
+            # results = []
+            # for job in jobs:
+            #     match_result = cls.match_resume_to_job(job.id, resume_id, user)
+            #     if match_result.success:
+            #         results.append(match_result.data)
             
             return ApiResponse.success(
                 data={

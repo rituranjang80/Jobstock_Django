@@ -10,7 +10,8 @@ class SettingListCreateAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="List all settings or create a new setting.",
-        responses={200: openapi.Response('List of settings'), 201: openapi.Response('Created setting')}
+        responses={200: openapi.Response('List of settings'), 201: openapi.Response('Created setting')},
+        tags=['Settings']
     )
     def get(self, request):
         settings = SettingService.list_settings()
@@ -27,7 +28,8 @@ class SettingListCreateAPI(APIView):
             },
             required=['key', 'value']
         ),
-        responses={201: openapi.Response('Created setting')}
+        responses={201: openapi.Response('Created setting')},
+        tags=['Settings']
     )
     def post(self, request):
         result = SettingService.create_setting(request.data)
@@ -40,7 +42,8 @@ class SettingDetailAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="Get a setting by ID.",
-        responses={200: openapi.Response('Setting detail'), 404: 'Not found'}
+        responses={200: openapi.Response('Setting detail'), 404: 'Not found'},
+        tags=['Settings']
     )
     def get(self, request, setting_id):
         setting = SettingService.get_setting(setting_id)
@@ -58,7 +61,8 @@ class SettingDetailAPI(APIView):
                 'description': openapi.Schema(type=openapi.TYPE_STRING, description='Description'),
             }
         ),
-        responses={200: openapi.Response('Updated setting'), 404: 'Not found'}
+        responses={200: openapi.Response('Updated setting'), 404: 'Not found'},
+        tags=['Settings']
     )
     def put(self, request, setting_id):
         result = SettingService.update_setting(setting_id, request.data)
@@ -70,7 +74,8 @@ class SettingDetailAPI(APIView):
 
     @swagger_auto_schema(
         operation_description="Delete a setting by ID.",
-        responses={204: 'No content', 404: 'Not found'}
+        responses={204: 'No content', 404: 'Not found'},
+        tags=['Settings']
     )
     def delete(self, request, setting_id):
         success = SettingService.delete_setting(setting_id)
