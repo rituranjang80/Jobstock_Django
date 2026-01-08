@@ -422,7 +422,7 @@ please write the hard code value in .env file and use it " url = (
 "&TrustServerCertificate=yes"
 )"
 
-git pull --no-rebase origin DAT-Linuxsetup
+git pull --no-rebase origin dat-p
 docker logs 696863eba5d0
 docker run --env-file .env -d -p 8000:8000 aicrm_backhand
 docker run --env-file .env -d -p 8000:8000 aicrm_backhand
@@ -458,3 +458,60 @@ docker run -d -p 80:80 --name ai-crm ai-crm-frontend:latet
   File "C:\project\aicrm\services\role_service.py", line 13, in <module>
     from utils.events import dispatch_role_change, dispatch_user_role_change
 ImportError: cannot import name 'dispatch_user_role_change' from 'utils.events' (C:\project\aicrm\utils\events.py)"
+
+I want remove the table "user_roles"  also uses of user_roles.[role_id]  we want uses of RoleID from table [dbo].[Users].[RoleID]
+
+in python code 
+In whole project I want remove the table "user_roles"  also uses of user_roles.[role_id]  we want uses of RoleID from table [dbo].[Users].[RoleID] 
+
+
+In function async def create_user(db: Session, user_request: schemas.UserCreate,batch_process=False) -> dict:
+if any exception occour in function then roll back all transaction please add more for perfect
+
+but i am insert multiple table so must be all table rollback the transaction
+
+
+do not use db.commit untill all transaction not complete 
+
+please check it Do not call db.commit in any repository or sub-service during the transaction.
+Only call db.commit once, after all steps succeed.
+If any exception is raised before commit, rollback is triggered and no changes are saved.
+
+In api this function
+@router.post("/upload-csv-from-sys2", response_model=None)
+async def upload_csv2(
+   # user_id:str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user)):
+ getting more time 10 minutes for inseting data and other API very slow or not working please find the root case and resolve the issue
+ 
+ 
+ 
+   File "/usr/local/lib/python3.12/site-packages/django/db/migrations/migration.py", line 132, in apply
+    operation.database_forwards(
+  File "/usr/local/lib/python3.12/site-packages/django/db/migrations/operations/fields.py", line 110, in database_forwards
+    schema_editor.add_field(
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/sqlite3/schema.py", line 318, in add_field
+    super().add_field(model, field)
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/base/schema.py", line 768, in add_field
+    self.execute(sql, params or None)
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/base/schema.py", line 202, in execute
+    cursor.execute(sql, params)
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		   File "/usr/local/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 350, in execute
+    return super().execute(query)           ^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: duplicate column name: job_id
+  Applying App.0017_auto_20251225_1538...
