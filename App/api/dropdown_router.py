@@ -10,6 +10,7 @@ class DropdownListAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        security=[{'Bearer': []}],
         operation_description="Get all active dropdown items for a group (cached in memory)",
         manual_parameters=[
             openapi.Parameter('group', openapi.IN_QUERY, description="Dropdown group text", type=openapi.TYPE_STRING, required=True),

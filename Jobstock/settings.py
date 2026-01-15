@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "App.settings",
-    "admin_req"
+    "admin_req",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "App.middleware.ErrorLoggingMiddleware",  # Custom error logging middleware
+    "corsheaders.middleware.CorsMiddleware",  # Add this at the top, before CommonMiddleware
 ]
 
 ROOT_URLCONF = "Jobstock.urls"
@@ -387,13 +389,19 @@ LOGGING = {
 # ============================================================================
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework.authentication.SessionAuthentication',
+    #     'rest_framework.authentication.BasicAuthentication',
+    # ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    # ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': [
@@ -410,18 +418,34 @@ REST_FRAMEWORK = {
 }
 
 # Swagger/OpenAPI Documentation Settings
+# SWAGGER_SETTINGS = {
+#     'SECURITY_DEFINITIONS': {
+#         'Basic': {
+#             'type': 'basic'
+#         },
+#         'Session': {
+#             'type': 'apiKey',
+#             'name': 'sessionid',
+#             'in': 'cookie'
+#         }
+#     },
+#     'USE_SESSION_AUTH': True,
+#     'JSON_EDITOR': True,
+#     'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
+# }
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
-        'Basic': {
-            'type': 'basic'
-        },
-        'Session': {
+        'Bearer': {
             'type': 'apiKey',
-            'name': 'sessionid',
-            'in': 'cookie'
-        }
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <token>"',
+        },
+        # ... other definitions ...
     },
     'USE_SESSION_AUTH': True,
     'JSON_EDITOR': True,
     'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
 }
+
+CORS_ALLOW_ALL_ORIGINS = True

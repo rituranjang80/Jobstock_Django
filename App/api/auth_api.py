@@ -90,6 +90,7 @@ class LogoutAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
+        security=[{'Bearer': []}],
         responses={200: "Logout successful"},
         tags=["Auth"],
         operation_summary="User Logout",
@@ -102,12 +103,21 @@ class LogoutAPI(APIView):
 
 # JWT Login API
 class JWTLoginAPI(APIView):
+    """
+    Obtain JWT access and refresh tokens.
+
+    1. Enter your username and password below and execute this endpoint.
+    2. Copy the 'access' token from the response.
+    3. Click the 'Authorize' button at the top of the Swagger UI.
+    4. Paste your token as: Bearer <access_token>
+    5. All protected endpoints will now use your JWT token.
+    """
     permission_classes = [permissions.AllowAny]
 
     @swagger_auto_schema(
         request_body=JWTLoginSerializer,
         responses={200: openapi.Response(
-            description="JWT tokens returned",
+            description="JWT tokens returned. Copy the 'access' token and use it with the Authorize button above.",
             examples={
                 "application/json": {
                     "access": "<access_token>",
@@ -117,7 +127,15 @@ class JWTLoginAPI(APIView):
         ), 400: "Invalid credentials"},
         tags=["Auth"],
         operation_summary="JWT User Login",
-        operation_description="Authenticate a user and return JWT access and refresh tokens."
+        operation_description=(
+            "Authenticate a user and return JWT access and refresh tokens.\n\n"
+            "How to use:\n"
+            "1. Enter your username and password and execute this endpoint.\n"
+            "2. Copy the 'access' token from the response.\n"
+            "3. Click the 'Authorize' button at the top of the Swagger UI.\n"
+            "4. Paste your token as: Bearer <access_token>\n"
+            "5. All protected endpoints will now use your JWT token."
+        )
     )
     def post(self, request):
         serializer = JWTLoginSerializer(data=request.data)
