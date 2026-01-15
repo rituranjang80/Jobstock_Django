@@ -1,6 +1,8 @@
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return  # Bypass CSRF check
@@ -28,6 +30,12 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
 class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+
+# JWT Login Serializer (optional, can use default TokenObtainPairSerializer)
+class JWTLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 
@@ -90,3 +98,39 @@ class LogoutAPI(APIView):
     def post(self, request):
         logout(request)
         return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
+
+
+# JWT Login API
+class JWTLoginAPI(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        request_body=JWTLoginSerializer,
+        responses={200: openapi.Response(
+            description="JWT tokens returned",
+            examples={
+                "application/json": {
+                    "access": "<access_token>",
+                    "refresh": "<refresh_token>"
+                }
+            }
+        ), 400: "Invalid credentials"},
+        tags=["Auth"],
+        operation_summary="JWT User Login",
+        operation_description="Authenticate a user and return JWT access and refresh tokens."
+    )
+    def post(self, request):
+        serializer = JWTLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = authenticate(
+                username=serializer.validated_data["username"],
+                password=serializer.validated_data["password"]
+            )
+            if user:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh)
+                }, status=status.HTTP_200_OK)
+            return Response({"error": "Invalid username or password."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
