@@ -159,4 +159,7 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("slider-home/", views.slider_home, name="slider_home"),
+    
+    # New navigation-ui API route
+    path("api/navigation-ui/", include('App.urls_api_navigation_ui')),
 ]

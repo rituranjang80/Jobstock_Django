@@ -13,6 +13,7 @@ class DropdownGroupViewSet(ModelViewSet):
     serializer_class = DropdownGroupSchema
     permission_classes = [IsAuthenticated]
     swagger_tags = ['Dropdowns']
+    pagination_class = None
 
     @swagger_auto_schema(
         operation_description="List all dropdown groups with their items.",
