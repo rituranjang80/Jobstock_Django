@@ -3,6 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from datetime import timedelta
+from django.contrib.auth.models import Group, Permission
+
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return  # Bypass CSRF check
@@ -101,6 +104,30 @@ class LogoutAPI(APIView):
         return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
 
 
+# Helper function to get user groups, permissions, and role
+def get_user_extra_data(user):
+    groups = list(user.groups.values('id', 'name'))
+    group_ids = [g['id'] for g in groups]
+    group_names = [g['name'] for g in groups]
+    permissions = list(user.user_permissions.values('id', 'codename'))
+    permission_ids = [p['id'] for p in permissions]
+    permission_codenames = [p['codename'] for p in permissions]
+    # If using a custom profile model for role, adjust accordingly
+    role = getattr(user, 'profile', None)
+    role_value = getattr(role, 'role', None) if role else None
+    role_id = role.id if role else None
+    # User image
+    user_image = role.profile_image.url if role and role.profile_image else None
+    return {
+        "groups": group_names,
+        "group_ids": group_ids,
+        "permissions": permission_codenames,
+        "permission_ids": permission_ids,
+        "role": role_value,
+        "role_id": role_id,
+        "user_image": user_image
+    }
+
 # JWT Login API
 class JWTLoginAPI(APIView):
     """
@@ -140,15 +167,44 @@ class JWTLoginAPI(APIView):
     def post(self, request):
         serializer = JWTLoginSerializer(data=request.data)
         if serializer.is_valid():
+            # user = authenticate(
+            #     username='hiring_manager',#serializer.validated_data["username"],
+            #     password='H@ppy123'#serializer.validated_data["password"]
+            # )
             user = authenticate(
-                username='rpo_admin',#serializer.validated_data["username"],
+                username=serializer.validated_data["username"],
                 password='H@ppy123'#serializer.validated_data["password"]
             )
             if user:
                 refresh = RefreshToken.for_user(user)
+                access_token = refresh.access_token
+                access_token.set_exp(lifetime=timedelta(hours=12))
+                user_data = {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "is_staff": user.is_staff,
+                    "is_superuser": user.is_superuser,
+                    "user_image": get_user_extra_data(user)["user_image"]
+                }
+                extra_data = get_user_extra_data(user)
+                # Add extra data to token (except user_image)
+                access_token["groups"] = extra_data["groups"]
+                access_token["group_ids"] = extra_data["group_ids"]
+                access_token["permissions"] = extra_data["permissions"]
+                access_token["permission_ids"] = extra_data["permission_ids"]
+                access_token["role"] = extra_data["role"]
+                access_token["role_id"] = extra_data["role_id"]
                 return Response({
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh)
+                    "access": str(access_token),
+                    "refresh": str(refresh),
+                    "user": user_data,
+                    "groups": extra_data["groups"],
+                    "group_ids": extra_data["group_ids"],
+                    "permissions": extra_data["permissions"],
+                    "permission_ids": extra_data["permission_ids"],
+                    "role": extra_data["role"],
+                    "role_id": extra_data["role_id"]
                 }, status=status.HTTP_200_OK)
             return Response({"error": "Invalid username or password."}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

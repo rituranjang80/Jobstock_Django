@@ -338,9 +338,7 @@ class EnhancedJobService(GenericService):
             ServiceResponse with user's job postings
         """
         try:
-            queryset = Job.objects.select_related(*self.SELECT_RELATED).filter(
-                posted_by=user
-            )
+            queryset = Job.objects.select_related(*self.SELECT_RELATED)#.filter(posted_by=user            )
             
             # Apply additional filters
             if filters:
