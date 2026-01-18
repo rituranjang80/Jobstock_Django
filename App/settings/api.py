@@ -1,3 +1,4 @@
+from App.api.response_mixin import APIResponseMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -5,7 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .services import SettingService
 
-class SettingListCreateAPI(APIView):
+class SettingListCreateAPI(APIResponseMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
@@ -35,7 +36,7 @@ class SettingListCreateAPI(APIView):
             return Response(result, status=status.HTTP_201_CREATED)
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-class SettingDetailAPI(APIView):
+class SettingDetailAPI(APIResponseMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(

@@ -5,8 +5,9 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from App.serializers.resume_processing_list_serializer import ResumeProcessingListSerializer
 from App.services.resume_processing_list_service import ResumeProcessingListService
+from App.api.response_mixin import APIResponseMixin
 
-class RPOResumeListAPI(APIView):
+class RPOResumeListAPI(APIResponseMixin, APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -36,11 +37,15 @@ class RPOResumeListAPI(APIView):
         }
         resumes, total = ResumeProcessingListService.get_resume_list(user, is_rpo_admin, filters, sort, offset, limit)
         serializer = ResumeProcessingListSerializer(resumes, many=True)
-        return Response({
-            'results': serializer.data,
-            'total': total,
-            'limit': limit,
-            'offset': offset,
-            'has_next': (offset + limit) < total,
-            'has_prev': offset > 0,
-        })
+        return self.api_response(
+            status_code=200,
+            message='Resumes fetched successfully',
+            data={
+                'results': serializer.data,
+                'total': total,
+                'limit': limit,
+                'offset': offset,
+                'has_next': (offset + limit) < total,
+                'has_prev': offset > 0,
+            }
+        )

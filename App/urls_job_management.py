@@ -15,8 +15,8 @@ from App.views.job_mvt_views import (
 
 # Import API views
 from App.views.job_api_views import (
-    job_list_api, job_detail_api, job_create_api, job_update_api, job_delete_api,
-    my_jobs_api, job_analytics_api,
+    JobAPI, JobDetailAPI, JobCreateAPI, JobUpdateAPI, JobDeleteAPI,
+    MyJobsAPI, JobAnalyticsAPI,
     job_publish_to_boards_api, job_sync_to_boards_api, job_fetch_external_applications_api,
     job_apply_api, job_applications_api, application_detail_api,
     application_update_status_api, applications_bulk_update_status_api,
@@ -50,13 +50,13 @@ mvt_patterns = [
 # REST API URLs
 api_patterns = [
     # Job endpoints
-    path('jobs/', job_list_api, name='api_job_list'),
-    path('jobs/<int:job_id>/', job_detail_api, name='api_job_detail'),
-    path('jobs/create/', job_create_api, name='api_job_create'),
-    path('jobs/<int:job_id>/update/', job_update_api, name='api_job_update'),
-    path('jobs/<int:job_id>/delete/', job_delete_api, name='api_job_delete'),
-    path('jobs/my-jobs/', my_jobs_api, name='api_my_jobs'),
-    path('jobs/<int:job_id>/analytics/', job_analytics_api, name='api_job_analytics'),
+    path('jobs/', JobAPI.as_view(), name='api_job_list'),
+    path('jobs/<int:job_id>/', JobDetailAPI.as_view(), name='api_job_detail'),
+    path('jobs/create/', JobCreateAPI.as_view(), name='api_job_create'),
+    path('jobs/<int:job_id>/update/', JobUpdateAPI.as_view(), name='api_job_update'),
+    path('jobs/<int:job_id>/delete/', JobDeleteAPI.as_view(), name='api_job_delete'),
+    path('jobs/my-jobs/', MyJobsAPI.as_view(), name='api_my_jobs'),
+    path('jobs/<int:job_id>/analytics/', JobAnalyticsAPI.as_view(), name='api_job_analytics'),
     
     # Job board integration
     path('jobs/publish-to-boards/', job_publish_to_boards_api, name='api_publish_to_boards'),

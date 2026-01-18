@@ -1,3 +1,4 @@
+from App.api.response_mixin import APIResponseMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -14,8 +15,12 @@ class SettingListCreateAPI(APIView):
         tags=['Settings']
     )
     def get(self, request):
-        settings = SettingService.list_settings()
-        return Response(settings, status=status.HTTP_200_OK)
+        settings = SettingService.get_all_settings()
+        return self.api_response(
+            status_code=200,
+            message="Settings fetched successfully",
+            data=settings
+        )
 
     @swagger_auto_schema(
         operation_description="Create a new setting.",
@@ -33,9 +38,13 @@ class SettingListCreateAPI(APIView):
     )
     def post(self, request):
         result = SettingService.create_setting(request.data)
-        if isinstance(result, dict) and 'id' in result:
-            return Response(result, status=status.HTTP_201_CREATED)
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        return self.api_response(
+            status_code=201 if result.get('success') else 400,
+            message=result.get('message', ''),
+            data=result.get('data'),
+            error_details=result.get('errors'),
+            more_error_details=None
+        )
 
 class SettingDetailAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -48,8 +57,16 @@ class SettingDetailAPI(APIView):
     def get(self, request, setting_id):
         setting = SettingService.get_setting(setting_id)
         if not setting:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        return Response(setting, status=status.HTTP_200_OK)
+            return self.api_response(
+                status_code=404,
+                message='Not found',
+                data=None
+            )
+        return self.api_response(
+            status_code=200,
+            message='Setting fetched successfully',
+            data=setting
+        )
 
     @swagger_auto_schema(
         operation_description="Update a setting by ID.",
@@ -66,11 +83,19 @@ class SettingDetailAPI(APIView):
     )
     def put(self, request, setting_id):
         result = SettingService.update_setting(setting_id, request.data)
-        if result is None:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        if isinstance(result, dict) and 'id' in result:
-            return Response(result, status=status.HTTP_200_OK)
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        if not result['success']:
+            return self.api_response(
+                status_code=404,
+                message='Not found',
+                data=None
+            )
+        return self.api_response(
+            status_code=200,
+            message=result.get('message', ''),
+            data=result.get('data'),
+            error_details=result.get('errors'),
+            more_error_details=None
+        )
 
     @swagger_auto_schema(
         operation_description="Delete a setting by ID.",
@@ -78,7 +103,15 @@ class SettingDetailAPI(APIView):
         tags=['Settings']
     )
     def delete(self, request, setting_id):
-        success = SettingService.delete_setting(setting_id)
-        if not success:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        result = SettingService.delete_setting(setting_id)
+        if not result['success']:
+            return self.api_response(
+                status_code=404,
+                message='Not found',
+                data=None
+            )
+        return self.api_response(
+            status_code=204,
+            message='Setting deleted successfully',
+            data=None
+        )

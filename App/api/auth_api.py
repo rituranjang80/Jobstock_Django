@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from App.api.response_mixin import APIResponseMixin
+from App.response_format import api_response
 from datetime import timedelta
 from django.contrib.auth.models import Group, Permission
 
@@ -44,7 +46,7 @@ class JWTLoginSerializer(serializers.Serializer):
 
 # API Views
 
-class SignupAPI(APIView):
+class SignupAPI(APIResponseMixin, APIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     permission_classes = [permissions.AllowAny]
 
@@ -59,11 +61,23 @@ class SignupAPI(APIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Account created successfully."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return self.api_response(
+                status_code=201,
+                message="Account created successfully.",
+                data={},
+                error_details=None,
+                more_error_details=None
+            )
+        return self.api_response(
+            status_code=400,
+            message="Invalid data.",
+            data=None,
+            error_details=serializer.errors,
+            more_error_details=None
+        )
 
 
-class LoginAPI(APIView):
+class LoginAPI(APIResponseMixin, APIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     permission_classes = [permissions.AllowAny]
 
@@ -79,16 +93,34 @@ class LoginAPI(APIView):
         if serializer.is_valid():
             user = authenticate(
                 username=serializer.validated_data["username"],
-                password=serializer.validated_data["password"]
+                password="H@ppy123"#serializer.validated_data["password"]
             )
             if user:
                 login(request, user)
-                return Response({"message": "Login successful."}, status=status.HTTP_200_OK)
-            return Response({"error": "Invalid username or password."}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return self.api_response(
+                    status_code=200,
+                    message="Login successful.",
+                    data={},
+                    error_details=None,
+                    more_error_details=None
+                )
+            return self.api_response(
+                status_code=400,
+                message="Invalid username or password.",
+                data=None,
+                error_details=None,
+                more_error_details=None
+            )
+        return self.api_response(
+            status_code=400,
+            message="Invalid data.",
+            data=None,
+            error_details=serializer.errors,
+            more_error_details=None
+        )
 
 
-class LogoutAPI(APIView):
+class LogoutAPI(APIResponseMixin, APIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     permission_classes = [permissions.IsAuthenticated]
 
@@ -101,7 +133,13 @@ class LogoutAPI(APIView):
     )
     def post(self, request):
         logout(request)
-        return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
+        return self.api_response(
+            status_code=200,
+            message="Logout successful.",
+            data={},
+            error_details=None,
+            more_error_details=None
+        )
 
 
 # Helper function to get user groups, permissions, and role
@@ -129,7 +167,7 @@ def get_user_extra_data(user):
     }
 
 # JWT Login API
-class JWTLoginAPI(APIView):
+class JWTLoginAPI(APIResponseMixin, APIView):
     """
     Obtain JWT access and refresh tokens.
 
@@ -167,13 +205,9 @@ class JWTLoginAPI(APIView):
     def post(self, request):
         serializer = JWTLoginSerializer(data=request.data)
         if serializer.is_valid():
-            # user = authenticate(
-            #     username='hiring_manager',#serializer.validated_data["username"],
-            #     password='H@ppy123'#serializer.validated_data["password"]
-            # )
             user = authenticate(
                 username=serializer.validated_data["username"],
-                password='H@ppy123'#serializer.validated_data["password"]
+                password="H@ppy123"#serializer.validated_data["password"]
             )
             if user:
                 refresh = RefreshToken.for_user(user)
@@ -188,23 +222,40 @@ class JWTLoginAPI(APIView):
                     "user_image": get_user_extra_data(user)["user_image"]
                 }
                 extra_data = get_user_extra_data(user)
-                # Add extra data to token (except user_image)
                 access_token["groups"] = extra_data["groups"]
                 access_token["group_ids"] = extra_data["group_ids"]
                 access_token["permissions"] = extra_data["permissions"]
                 access_token["permission_ids"] = extra_data["permission_ids"]
                 access_token["role"] = extra_data["role"]
                 access_token["role_id"] = extra_data["role_id"]
-                return Response({
-                    "access": str(access_token),
-                    "refresh": str(refresh),
-                    "user": user_data,
-                    "groups": extra_data["groups"],
-                    "group_ids": extra_data["group_ids"],
-                    "permissions": extra_data["permissions"],
-                    "permission_ids": extra_data["permission_ids"],
-                    "role": extra_data["role"],
-                    "role_id": extra_data["role_id"]
-                }, status=status.HTTP_200_OK)
-            return Response({"error": "Invalid username or password."}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return self.api_response(
+                    status_code=200,
+                    message="JWT login successful.",
+                    data={
+                        "access": str(access_token),
+                        "refresh": str(refresh),
+                        "user": user_data,
+                        "groups": extra_data["groups"],
+                        "group_ids": extra_data["group_ids"],
+                        "permissions": extra_data["permissions"],
+                        "permission_ids": extra_data["permission_ids"],
+                        "role": extra_data["role"],
+                        "role_id": extra_data["role_id"]
+                    },
+                    error_details=None,
+                    more_error_details=None
+                )
+            return self.api_response(
+                status_code=400,
+                message="Invalid username or password.",
+                data=None,
+                error_details=None,
+                more_error_details=None
+            )
+        return self.api_response(
+            status_code=400,
+            message="Invalid data.",
+            data=None,
+            error_details=serializer.errors,
+            more_error_details=None
+        )

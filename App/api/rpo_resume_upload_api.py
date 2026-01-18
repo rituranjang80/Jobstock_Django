@@ -8,8 +8,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from App.services.resume_upload_service import ResumeUploadService
 from App.models import Job, DropdownMaster
+from App.api.response_mixin import APIResponseMixin
 
-class RPOResumeUploadAPI(APIView):
+class RPOResumeUploadAPI(APIResponseMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
@@ -60,15 +61,28 @@ class RPOResumeUploadAPI(APIView):
             except DropdownMaster.DoesNotExist:
                 resumesource_obj = None
         if not files:
-            return Response({'success': False, 'message': 'Please select at least one resume file to upload'}, status=status.HTTP_400_BAD_REQUEST)
+            return self.api_response(
+                status_code=400,
+                message='Please select at least one resume file to upload',
+                data=None
+            )
         result = ResumeUploadService.upload_resumes(files, request.user, job=job_obj, resumesource=resumesource_obj)
         if result.success:
-            response = {'success': True, 'message': result.message, 'data': result.data}
-            if result.data['failed_count'] > 0:
-                response['warnings'] = result.data['failed']
-            return Response(response, status=status.HTTP_200_OK)
+            data = result.data
+            warnings = data['failed'] if data and data.get('failed_count', 0) > 0 else None
+            return self.api_response(
+                status_code=200,
+                message=result.message,
+                data=data,
+                error_details=None,
+                more_error_details=warnings
+            )
         else:
-            response = {'success': False, 'message': result.message}
-            if hasattr(result, 'error_details') and result.error_details:
-                response['errors'] = result.error_details.get('failed', [])
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            errors = result.error_details.get('failed', []) if hasattr(result, 'error_details') and result.error_details else None
+            return self.api_response(
+                status_code=400,
+                message=result.message,
+                data=None,
+                error_details=errors,
+                more_error_details=None
+            )

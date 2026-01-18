@@ -22,202 +22,229 @@ from App.serializers.job_serializers import (
     JobSearchSerializer, JobBoardPublishSerializer,
     ApplicationStatusUpdateSerializer, BulkApplicationStatusSerializer
 )
+from App.api.response_mixin import APIResponseMixin
 
 
 # ==================== JOB ENDPOINTS ====================
 
-@swagger_auto_schema(method='get', tags=['Job'], operation_summary='List and search jobs', operation_description='List and search jobs with filters.')
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def job_list_api(request):
+class JobAPI(APIResponseMixin, APIView):
     """
-    GET /api/jobs/
-    List and search jobs with filters
-    
-    Query Parameters:
-        - q: Search query
-        - job_category: Category ID
-        - job_type: Job type value
-        - job_level: Job level value
-        - min_salary: Minimum salary
-        - max_salary: Maximum salary
-        - location: Location string
-        - posted_within_days: Number of days
-        - page: Page number (default: 1)
-        - per_page: Items per page (default: 20)
+    List and search jobs
     """
-    serializer = JobSearchSerializer(data=request.query_params)
-    
-    if not serializer.is_valid():
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    params = serializer.validated_data
-    
-    # Build filters
-    filters = {}
-    for key in ['job_category', 'job_type', 'job_level', 'min_salary', 
-                'max_salary', 'location', 'posted_within_days']:
-        if key in params and params[key]:
-            filters[key] = params[key]
-    
-    # Call service
-    result = job_service.search_jobs(
-        search_query=params.get('q'),
-        filters=filters,
-        page=params.get('page', 1),
-        per_page=params.get('per_page', 20),
-        order_by=params.get('order_by', '-created_at')
-    )
-    
-    return Response(result)
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='List and search jobs', operation_description='List and search jobs with filters.')
+    def get(self, request):
+        serializer = JobSearchSerializer(data=request.query_params)
+        if not serializer.is_valid():
+            return self.api_response(
+                status_code=400,
+                message="Invalid parameters",
+                error_details=serializer.errors,
+                data=None
+            )
+        params = serializer.validated_data
+        filters = {}
+        for key in ['job_category', 'job_type', 'job_level', 'min_salary', 'max_salary', 'location', 'posted_within_days']:
+            if key in params and params[key]:
+                filters[key] = params[key]
+        result = job_service.search_jobs(
+            search_query=params.get('q'),
+            filters=filters,
+            page=params.get('page', 1),
+            per_page=params.get('per_page', 20),
+            order_by=params.get('order_by', '-created_at')
+        )
+        return self.api_response(
+            status_code=200,
+            message="Jobs fetched successfully",
+            data=result
+        )
 
 
-@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get job details', operation_description='Get job details.')
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def job_detail_api(request, job_id):
+class JobDetailAPI(APIResponseMixin, APIView):
     """
-    GET /api/jobs/{job_id}/
     Get job details
     """
-    result = job_service.get_job_details(job_id)
-    
-    if result['success']:
-        return Response(result)
-    else:
-        return Response(result, status=status.HTTP_404_NOT_FOUND)
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Get job details', operation_description='Get job details.')
+    def get(self, request, job_id):
+        result = job_service.get_job_details(job_id)
+        if result['success']:
+            return self.api_response(
+                status_code=200,
+                message="Job details fetched successfully",
+                data=result
+            )
+        else:
+            return self.api_response(
+                status_code=404,
+                message="Job not found",
+                data=None
+            )
 
 
-@swagger_auto_schema(method='post', tags=['Job'], operation_summary='Create job', operation_description='Create a new job posting.')
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def job_create_api(request):
+class JobCreateAPI(APIResponseMixin, APIView):
     """
-    POST /api/jobs/
-    Create a new job posting
-    
-    Body:
-        - All job fields
-        - publish_to_boards: List of boards (optional)
+    Create job
     """
-    serializer = JobCreateUpdateSerializer(data=request.data)
-    
-    if not serializer.is_valid():
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Extract board selection
-    boards = serializer.validated_data.pop('publish_to_boards', None)
-    
-    # Create job via service
-    result = job_service.create_job_post(
-        data=serializer.validated_data,
-        user=request.user,
-        publish_to_boards=boards
-    )
-    
-    if result['success']:
-        return Response(result, status=status.HTTP_201_CREATED)
-    else:
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Create job', operation_description='Create a new job posting.')
+    def post(self, request):
+        serializer = JobCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.api_response(
+                status_code=400,
+                message="Invalid parameters",
+                error_details=serializer.errors,
+                data=None
+            )
+        boards = serializer.validated_data.pop('publish_to_boards', None)
+        result = job_service.create_job_post(
+            data=serializer.validated_data,
+            user=request.user,
+            publish_to_boards=boards
+        )
+        if result['success']:
+            return self.api_response(
+                status_code=201,
+                message="Job created successfully",
+                data=result
+            )
+        else:
+            return self.api_response(
+                status_code=400,
+                message="Error creating job",
+                data=result
+            )
 
 
-@swagger_auto_schema(methods=['put', 'patch'], tags=['Job'], operation_summary='Update job', operation_description='Update a job posting.')
-@api_view(['PUT', 'PATCH'])
-@permission_classes([IsAuthenticated])
-def job_update_api(request, job_id):
+class JobUpdateAPI(APIResponseMixin, APIView):
     """
-    PUT/PATCH /api/jobs/{job_id}/
-    Update a job posting
+    Update job
     """
-    serializer = JobCreateUpdateSerializer(data=request.data, partial=(request.method == 'PATCH'))
-    
-    if not serializer.is_valid():
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Update via service
-    result = job_service.update_job_post(
-        job_id=job_id,
-        data=serializer.validated_data,
-        user=request.user,
-        sync_to_boards=True
-    )
-    
-    if result['success']:
-        return Response(result)
-    else:
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Update job', operation_description='Update a job posting.')
+    def patch(self, request, job_id):
+        serializer = JobCreateUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return self.api_response(
+                status_code=400,
+                message="Invalid parameters",
+                error_details=serializer.errors,
+                data=None
+            )
+        result = job_service.update_job_post(
+            job_id=job_id,
+            data=serializer.validated_data,
+            user=request.user,
+            sync_to_boards=True
+        )
+        if result['success']:
+            return self.api_response(status_code=200, message="Job updated successfully", data=result)
+        else:
+            return self.api_response(status_code=400, message="Job update failed", error_details=result.get('errors'), data=None)
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Update job', operation_description='Update a job posting.')
+    def put(self, request, job_id):
+        serializer = JobCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.api_response(
+                status_code=400,
+                message="Invalid parameters",
+                error_details=serializer.errors,
+                data=None
+            )
+        result = job_service.update_job_post(
+            job_id=job_id,
+            data=serializer.validated_data,
+            user=request.user,
+            sync_to_boards=True
+        )
+        if result['success']:
+            return self.api_response(status_code=200, message="Job updated successfully", data=result)
+        else:
+            return self.api_response(status_code=400, message="Job update failed", error_details=result.get('errors'), data=None)
 
 
-@swagger_auto_schema(method='delete', tags=['Job'], operation_summary='Delete job', operation_description='Delete/deactivate a job posting.')
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def job_delete_api(request, job_id):
+class JobDeleteAPI(APIResponseMixin, APIView):
     """
-    DELETE /api/jobs/{job_id}/
-    Delete/deactivate a job posting
+    Delete job
     """
-    soft_delete = request.query_params.get('soft', 'true').lower() == 'true'
-    
-    result = job_service.deactivate_job(
-        job_id=job_id,
-        user=request.user,
-        remove_from_boards=True
-    )
-    
-    if result['success']:
-        return Response(result)
-    else:
-        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Delete job', operation_description='Delete/deactivate a job posting.')
+    def delete(self, request, job_id):
+        soft_delete = request.query_params.get('soft', 'true').lower() == 'true'
+        result = job_service.deactivate_job(
+            job_id=job_id,
+            user=request.user,
+            remove_from_boards=True
+        )
+        if result['success']:
+            return self.api_response(
+                status_code=200,
+                message="Job deleted successfully",
+                data=result
+            )
+        else:
+            return self.api_response(
+                status_code=400,
+                message="Error deleting job",
+                data=result
+            )
 
 
-@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user.')
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def my_jobs_api(request):
+class MyJobsAPI(APIResponseMixin, APIView):
     """
-    GET /api/jobs/my-jobs/
     Get jobs posted by current user
     """
-    page = int(request.query_params.get('page', 1))
-    per_page = int(request.query_params.get('per_page', 20))
-    
-    filters = {}
-    if request.query_params.get('is_active'):
-        filters['is_active'] = request.query_params.get('is_active') == 'true'
-    
-    result = job_service.get_my_posted_jobs(
-        user=request.user,
-        filters=filters,
-        page=page,
-        per_page=per_page
-    )
-    
-    return Response(result)
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user.')
+    def get(self, request):
+        page = int(request.query_params.get('page', 1))
+        per_page = int(request.query_params.get('per_page', 20))
+        filters = {}
+        if request.query_params.get('is_active'):
+            filters['is_active'] = request.query_params.get('is_active') == 'true'
+        result = job_service.get_my_posted_jobs(
+            user=request.user,
+            filters=filters,
+            page=page,
+            per_page=per_page
+        )
+        return self.api_response(
+            status_code=200,
+            message="My jobs fetched successfully",
+            data=result
+        )
 
 
-@swagger_auto_schema(method='get', tags=['Job'], operation_summary='Get job analytics', operation_description='Get job analytics.')
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def job_analytics_api(request, job_id):
+class JobAnalyticsAPI(APIResponseMixin, APIView):
     """
-    GET /api/jobs/{job_id}/analytics/
     Get job analytics
     """
-    result = job_service.get_job_analytics(job_id, request.user)
-    
-    if result['success']:
-        return Response(result)
-    else:
-        return Response(result, status=status.HTTP_404_NOT_FOUND)
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Job'], operation_summary='Get job analytics', operation_description='Get job analytics.')
+    def get(self, request, job_id):
+        result = job_service.get_job_analytics(job_id, request.user)
+        if result['success']:
+            return self.api_response(
+                status_code=200,
+                message="Job analytics fetched successfully",
+                data=result
+            )
+        else:
+            return self.api_response(
+                status_code=404,
+                message="Job not found",
+                data=None
+            )
 
 
 # ==================== JOB BOARD INTEGRATION ENDPOINTS ====================

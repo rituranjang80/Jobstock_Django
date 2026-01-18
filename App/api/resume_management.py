@@ -11,8 +11,9 @@ from drf_yasg import openapi
 from rest_framework import status
 from App.services.resume_upload_service import ResumeUploadService
 from App.models import Job, DropdownMaster
+from App.api.response_mixin import APIResponseMixin
 
-class RPOResumeUploadAPI(APIView):
+class RPOResumeUploadAPI(APIResponseMixin, APIView):
     """
     API endpoint for RPO Admin Resume Upload (GET: form info, POST: upload resumes)
     """
@@ -67,14 +68,18 @@ class RPOResumeUploadAPI(APIView):
         # Allowed extensions and max file size
         allowed_extensions = ', '.join(ResumeUploadService.ALLOWED_EXTENSIONS)
         max_file_size_mb = ResumeUploadService.MAX_FILE_SIZE / (1024 * 1024)
-        return Response({
-            "job_id": job_id,
-            "job_title": job_title,
-            "job_company": job_company,
-            "resume_sources": resume_sources_list,
-            "allowed_extensions": allowed_extensions,
-            "max_file_size_mb": max_file_size_mb
-        })
+        return self.api_response(
+            status_code=200,
+            message="Upload form info fetched successfully",
+            data={
+                "job_id": job_id,
+                "job_title": job_title,
+                "job_company": job_company,
+                "resume_sources": resume_sources_list,
+                "allowed_extensions": allowed_extensions,
+                "max_file_size_mb": max_file_size_mb
+            }
+        )
 
     @swagger_auto_schema(
         operation_description="Upload one or more resumes for a job (RPO Admin only)",
@@ -107,7 +112,11 @@ class RPOResumeUploadAPI(APIView):
         user_role = getattr(user.profile, 'role', 'unknown') if hasattr(user, 'profile') else 'unknown'
         is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
         if not is_rpo_admin and not user.is_superuser:
-            return Response({"success": False, "message": "Access denied. RPO Admin role required."}, status=status.HTTP_403_FORBIDDEN)
+            return self.api_response(
+                status_code=403,
+                message="Access denied. RPO Admin role required.",
+                data=None
+            )
 
         files = request.FILES.getlist('resumes')
         job_id = request.data.get('jobid')
@@ -125,11 +134,18 @@ class RPOResumeUploadAPI(APIView):
             except DropdownMaster.DoesNotExist:
                 resumesource_obj = None
         if not files:
-            return Response({"success": False, "message": "Please select at least one resume file to upload"}, status=status.HTTP_400_BAD_REQUEST)
+            return self.api_response(
+                status_code=400,
+                message="Please select at least one resume file to upload",
+                data=None
+            )
         result = ResumeUploadService.upload_resumes(files, user, job=job_obj, resumesource=resumesource_obj)
-        resp = {"success": result.success, "message": result.message}
-        if hasattr(result, 'data') and result.data:
-            resp["data"] = result.data
-        if hasattr(result, 'error_details') and result.error_details:
-            resp["error_details"] = result.error_details
-        return Response(resp, status=status.HTTP_200_OK if result.success else status.HTTP_400_BAD_REQUEST)
+        data = result.data if hasattr(result, 'data') and result.data else None
+        error_details = result.error_details if hasattr(result, 'error_details') and result.error_details else None
+        return self.api_response(
+            status_code=200 if result.success else 400,
+            message=result.message,
+            data=data,
+            error_details=error_details,
+            more_error_details=None
+        )

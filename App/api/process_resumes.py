@@ -9,8 +9,9 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import status
 from App.services.resume_upload_service import ResumeUploadService
+from App.api.response_mixin import APIResponseMixin
 
-class RPOProcessResumesAPI(APIView):
+class RPOProcessResumesAPI(APIResponseMixin, APIView):
     """
     API endpoint for processing pending resumes (POST)
     """
@@ -47,8 +48,13 @@ class RPOProcessResumesAPI(APIView):
         user_role = getattr(user.profile, 'role', 'unknown') if hasattr(user, 'profile') else 'unknown'
         is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
         if not is_rpo_admin and not user.is_superuser:
-            return Response({"success": False, "message": "Access denied. RPO Admin role required."}, status=status.HTTP_403_FORBIDDEN)
-
+            return self.api_response(
+                status_code=403,
+                message="Access denied. RPO Admin role required.",
+                data=None,
+                error_details=None,
+                more_error_details=None
+            )
 
         resume_ids_val = request.data.get('resume_ids', '')
         resume_ids = None
@@ -60,14 +66,26 @@ class RPOProcessResumesAPI(APIView):
                 try:
                     resume_ids = [int(i) for i in resume_ids_val]
                 except Exception:
-                    return Response({"success": False, "message": "Invalid resume IDs format (list)"}, status=status.HTTP_400_BAD_REQUEST)
+                    return self.api_response(
+                        status_code=400,
+                        message="Invalid resume IDs format (list)",
+                        data=None
+                    )
             elif isinstance(resume_ids_val, str):
                 try:
                     resume_ids = [int(id.strip()) for id in resume_ids_val.split(',') if id.strip()]
                 except Exception:
-                    return Response({"success": False, "message": "Invalid resume IDs format (string)"}, status=status.HTTP_400_BAD_REQUEST)
+                    return self.api_response(
+                        status_code=400,
+                        message="Invalid resume IDs format (string)",
+                        data=None
+                    )
             else:
-                return Response({"success": False, "message": "Invalid resume IDs type"}, status=status.HTTP_400_BAD_REQUEST)
+                return self.api_response(
+                    status_code=400,
+                    message="Invalid resume IDs type",
+                    data=None
+                )
 
         job_id_val = request.data.get('job_id', None)
         job_id = None
@@ -78,9 +96,17 @@ class RPOProcessResumesAPI(APIView):
                 try:
                     job_id = int(job_id_val.strip())
                 except Exception:
-                    return Response({"success": False, "message": "Invalid Job ID format (string)"}, status=status.HTTP_400_BAD_REQUEST)
+                    return self.api_response(
+                        status_code=400,
+                        message="Invalid Job ID format (string)",
+                        data=None
+                    )
             else:
-                return Response({"success": False, "message": "Invalid Job ID type"}, status=status.HTTP_400_BAD_REQUEST)
+                return self.api_response(
+                    status_code=400,
+                    message="Invalid Job ID type",
+                    data=None
+                )
 
         result = ResumeUploadService.process_pending_resumes(user, resume_ids, job_id)
         resp = {"success": result.success, "message": result.message}
@@ -109,8 +135,12 @@ class RPOProcessResumesAPI(APIView):
                 data['resume_record'] = serialize_resume_record(data['resume_record'])
             return data
 
-        if hasattr(result, 'data') and result.data:
-            resp["data"] = clean_result_data(result.data)
-        if hasattr(result, 'error_details') and result.error_details:
-            resp["error_details"] = result.error_details
-        return Response(resp, status=status.HTTP_200_OK if result.success else status.HTTP_400_BAD_REQUEST)
+        data = clean_result_data(result.data) if hasattr(result, 'data') and result.data else None
+        error_details = result.error_details if hasattr(result, 'error_details') and result.error_details else None
+        return self.api_response(
+            status_code=200 if result.success else 400,
+            message=result.message,
+            data=data,
+            error_details=error_details,
+            more_error_details=None
+        )

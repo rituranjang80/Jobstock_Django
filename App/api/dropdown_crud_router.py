@@ -6,9 +6,10 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from App.models import DropdownGroup, DropdownMaster
 from App.serializers.dropdown_schema import DropdownGroupSchema, DropdownMasterSchema
+from App.api.viewset_response_mixin import APIViewSetResponseMixin
 
 
-class DropdownGroupViewSet(ModelViewSet):
+class DropdownGroupViewSet(APIViewSetResponseMixin, ModelViewSet):
     queryset = DropdownGroup.objects.all()
     serializer_class = DropdownGroupSchema
     permission_classes = [IsAuthenticated]
@@ -24,7 +25,7 @@ class DropdownGroupViewSet(ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 
-class DropdownMasterViewSet(ModelViewSet):
+class DropdownMasterViewSet(APIViewSetResponseMixin, ModelViewSet):
     queryset = DropdownMaster.objects.all()
     serializer_class = DropdownMasterSchema
     permission_classes = [IsAuthenticated]
