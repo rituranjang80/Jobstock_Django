@@ -90,13 +90,13 @@ class DropdownGroup(models.Model):
     e.g., Education, Experience, Country, City
     """
     id = models.AutoField(primary_key=True)
-    text = models.CharField(max_length=100, unique=True)
+    label = models.CharField(max_length=100, unique=True)
     value = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return self.text
+        return self.label
     
     class Meta:
         db_table = 'dropdown_group'
@@ -111,20 +111,20 @@ class DropdownMaster(models.Model):
     """
     id = models.AutoField(primary_key=True)
     group = models.ForeignKey(DropdownGroup, on_delete=models.CASCADE, related_name='items')
-    text = models.CharField(max_length=200)
+    label = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.group.text} - {self.text}"
+        return f"{self.group.label} - {self.label}"
     
     class Meta:
         db_table = 'dropdown_master'
         verbose_name = 'Dropdown Master'
         verbose_name_plural = 'Dropdown Masters'
-        ordering = ['group', 'sort_order', 'text']
+        ordering = ['group', 'sort_order', 'label']
 
 
 class Job(models.Model):
@@ -1233,7 +1233,7 @@ from App.models import DropdownGroup, DropdownMaster
 def insert_resume_source_companies():
     # Create or get the ResumeSource group
     group, _ = DropdownGroup.objects.get_or_create(
-        text='ResumeSource', defaults={'value': 'ResumeSource', 'is_active': True}
+        label='ResumeSource', defaults={'value': 'ResumeSource', 'is_active': True}
     )
     # List of company names
     companies = [
@@ -1244,7 +1244,7 @@ def insert_resume_source_companies():
     for idx, name in enumerate(companies):
         DropdownMaster.objects.get_or_create(
             group=group,
-            text=name,
+            label=name,
             defaults={
                 'value': name.lower(),
                 'is_active': True,

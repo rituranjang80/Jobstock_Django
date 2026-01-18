@@ -610,25 +610,25 @@ class EnhancedJobService(GenericService):
             'qualifications': job.qualifications,
             'job_category': {
                 'id': job.job_category.id if job.job_category else None,
-                'text': job.job_category.text if job.job_category else None,
+                'label': job.job_category.label if job.job_category else None,
                 'value': job.job_category.value if job.job_category else None,
             } if job.job_category else None,
             'job_type': {
                 'id': job.job_type.id if job.job_type else None,
-                'text': job.job_type.text if job.job_type else None,
+                'label': job.job_type.label if job.job_type else None,
                 'value': job.job_type.value if job.job_type else None,
             } if job.job_type else None,
             'job_level': {
                 'id': job.job_level.id if job.job_level else None,
-                'text': job.job_level.text if job.job_level else None,
+                'label': job.job_level.label if job.job_level else None,
             } if job.job_level else None,
             'experience_required': {
                 'id': job.experience_required.id if job.experience_required else None,
-                'text': job.experience_required.text if job.experience_required else None,
+                'label': job.experience_required.label if job.experience_required else None,
             } if job.experience_required else None,
             'qualification_required': {
                 'id': job.qualification_required.id if job.qualification_required else None,
-                'text': job.qualification_required.text if job.qualification_required else None,
+                'label': job.qualification_required.label if job.qualification_required else None,
             } if job.qualification_required else None,
             'salary': {
                 'min': float(job.min_salary) if job.min_salary else None,
@@ -638,14 +638,14 @@ class EnhancedJobService(GenericService):
             'location': {
                 'permanent_address': job.permanent_address,
                 'temporary_address': job.temporary_address,
-                'city': job.state_city.text if job.state_city else None,
-                'country': job.country.text if job.country else None,
+                'city': job.state_city.label if job.state_city else None,
+                'country': job.country.label if job.country else None,
                 'zip_code': job.zip_code,
                 'latitude': float(job.latitude) if job.latitude else None,
                 'longitude': float(job.longitude) if job.longitude else None,
             },
             'skills': job.skills.split(',') if job.skills else [],
-            'total_openings': job.total_openings.text if job.total_openings else None,
+            'total_openings': job.total_openings.label if job.total_openings else None,
             'start_date': job.start_date.isoformat() if job.start_date else None,
             'deadline': job.deadline.isoformat() if job.deadline else None,
             'video_url': job.video_url,

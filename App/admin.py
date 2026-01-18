@@ -23,16 +23,16 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(DropdownGroup)
 class DropdownGroupAdmin(admin.ModelAdmin):
-	list_display = ('id', 'text', 'value', 'is_active', 'created_at')
+	list_display = ('id', 'label', 'value', 'is_active', 'created_at')
 	list_filter = ('is_active',)
-	search_fields = ('text', 'value')
+	search_fields = ('label', 'value')
 
 
 @admin.register(DropdownMaster)
 class DropdownMasterAdmin(admin.ModelAdmin):
-	list_display = ('id', 'group', 'text', 'value', 'sort_order', 'is_active', 'created_at')
+	list_display = ('id', 'group', 'label', 'value', 'sort_order', 'is_active', 'created_at')
 	list_filter = ('group', 'is_active')
-	search_fields = ('text', 'value')
+	search_fields = ('label', 'value')
 	list_editable = ('sort_order', 'is_active')
 
 
