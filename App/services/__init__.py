@@ -20,7 +20,7 @@ __all__ = [
     'ProfileService',
     'ApplicationService',
     'NavigationService',
-    # Enhanced services
+    'Enhanced services',
     'GenericService',
     'ServiceResponse',
     'EnhancedJobService',

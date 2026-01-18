@@ -209,6 +209,8 @@ class MyJobsAPI(APIResponseMixin, APIView):
 
     @swagger_auto_schema(tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user, with search and sort.')
     def get(self, request):
+        from App.models_extended import JobApplication
+        from App.services.base_generic_service import ServiceResponse
         page = int(request.query_params.get('page', 1))
         per_page = int(request.query_params.get('page_size', 20))
         filters = {}
@@ -240,25 +242,23 @@ class MyJobsAPI(APIResponseMixin, APIView):
         job_list = []
         for job in jobs:
             job_data = job_service._serialize_job_detail(job)
-            job_data['application_count'] = job.applications.count() if hasattr(job, 'applications') else 0
+            job_data['application_count'] = JobApplication.objects.filter(job_id=job.id).count()
             job_list.append(job_data)
-        data = {
-            'results': job_list,
-            'page': page,
-            'per_page': per_page,
-            'total': total_jobs,
-            'summary': {
-                'total_jobs': total_jobs,
-                'active_jobs': active_jobs,
-                'inactive_jobs': total_jobs - active_jobs
-            },
-            'has_next': end < total_jobs,
-            'has_prev': start > 0,
-        }
         return self.api_response(
             status_code=200,
-            message="My jobs fetched successfully",
-            data=data
+            message=f"Retrieved {total_jobs} jobs",
+            data=ServiceResponse.paginated(
+                data=job_list,
+                page=page,
+                per_page=per_page,
+                total=total_jobs,
+                summary={
+                    'total_jobs': total_jobs,
+                    'active_jobs': active_jobs,
+                    'inactive_jobs': total_jobs - active_jobs
+                },
+                message=f"Retrieved {total_jobs} jobs"
+            )
         )
 
 
