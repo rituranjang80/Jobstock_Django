@@ -23,6 +23,9 @@ from App.serializers.job_serializers import (
     ApplicationStatusUpdateSerializer, BulkApplicationStatusSerializer
 )
 from App.api.response_mixin import APIResponseMixin
+from App.services.search_config_loader import get_search_fields
+from django.db.models import Q
+import json
 
 
 # ==================== JOB ENDPOINTS ====================
@@ -200,27 +203,62 @@ class JobDeleteAPI(APIResponseMixin, APIView):
 
 class MyJobsAPI(APIResponseMixin, APIView):
     """
-    Get jobs posted by current user
+    Get jobs posted by current user, with search and sort support
     """
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user.')
+    @swagger_auto_schema(tags=['Job'], operation_summary='Get my jobs', operation_description='Get jobs posted by current user, with search and sort.')
     def get(self, request):
         page = int(request.query_params.get('page', 1))
-        per_page = int(request.query_params.get('per_page', 20))
+        per_page = int(request.query_params.get('page_size', 20))
         filters = {}
         if request.query_params.get('is_active'):
             filters['is_active'] = request.query_params.get('is_active') == 'true'
-        result = job_service.get_my_posted_jobs(
-            user=request.user,
-            filters=filters,
-            page=page,
-            per_page=per_page
-        )
+        # --- Search support ---
+        search_query = request.query_params.get('search')
+        search_fields = get_search_fields('my-jobs')
+        search_q = Q()
+        if search_query and search_fields:
+            for field in search_fields:
+                search_q |= Q(**{f"{field}__icontains": search_query})
+        # --- Sort support ---
+        sort_by = request.query_params.get('sortBy', 'created_at')
+        sort_order = request.query_params.get('sortOrder', 'desc')
+        order_by = f"{'-' if sort_order == 'desc' else ''}{sort_by}"
+        # Queryset
+        queryset = job_service.model.objects.select_related(*job_service.SELECT_RELATED).filter(posted_by=request.user)
+        if filters:
+            queryset = queryset.filter(**filters)
+        if search_q:
+            queryset = queryset.filter(search_q)
+        total_jobs = queryset.count()
+        active_jobs = queryset.filter(is_active=True).count()
+        queryset = queryset.order_by(order_by)
+        start = (page - 1) * per_page
+        end = start + per_page
+        jobs = queryset[start:end]
+        job_list = []
+        for job in jobs:
+            job_data = job_service._serialize_job_detail(job)
+            job_data['application_count'] = job.applications.count() if hasattr(job, 'applications') else 0
+            job_list.append(job_data)
+        data = {
+            'results': job_list,
+            'page': page,
+            'per_page': per_page,
+            'total': total_jobs,
+            'summary': {
+                'total_jobs': total_jobs,
+                'active_jobs': active_jobs,
+                'inactive_jobs': total_jobs - active_jobs
+            },
+            'has_next': end < total_jobs,
+            'has_prev': start > 0,
+        }
         return self.api_response(
             status_code=200,
             message="My jobs fetched successfully",
-            data=result
+            data=data
         )
 
 
