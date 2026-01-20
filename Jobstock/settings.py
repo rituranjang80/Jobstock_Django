@@ -62,6 +62,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "App.middleware.ErrorLoggingMiddleware",  # Custom error logging middleware
     "corsheaders.middleware.CorsMiddleware",  # Add this at the top, before CommonMiddleware
+    "restapi_error_middleware.RestApiErrorMiddleware",  # Custom REST API error handling middleware
 ]
 
 ROOT_URLCONF = "Jobstock.urls"
@@ -413,8 +414,9 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'App.utils.drf_exception_handler.custom_exception_handler'
+    #'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    #'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 # Swagger/OpenAPI Documentation Settings

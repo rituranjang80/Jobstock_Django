@@ -8,6 +8,18 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
+class ApiException(Exception):
+    """
+    Custom exception for centralized error handling.
+    Carries both the original exception (if any) and the ApiResponse object.
+    Middleware should catch this for error monitoring and response formatting.
+    """
+    def __init__(self, response: 'ApiResponse', original_exception: Exception = None):
+        self.response = response
+        self.original_exception = original_exception
+        super().__init__(str(response.message))
+
+
 class ApiResponse:
     """
     Standardized API Response Class
@@ -88,13 +100,15 @@ class ApiResponse:
         status_code: int = status.HTTP_400_BAD_REQUEST
     ) -> 'ApiResponse':
         """Error response"""
-        return ApiResponse(
+        # Raise ApiException so middleware can catch and handle all errors centrally
+        response = ApiResponse(
             success=False,
             message=message,
             error=error or message,
             error_details=error_details,
             status_code=status_code
         )
+        raise ApiException(response)
     
     @staticmethod
     def not_found(

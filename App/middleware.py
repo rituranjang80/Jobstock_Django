@@ -4,6 +4,7 @@ Automatically captures and logs internal errors to the database.
 Filters out library/framework errors to focus on application code.
 """
 
+import logging
 import sys
 import traceback
 import hashlib
@@ -16,121 +17,136 @@ from django.utils import timezone
 
 class ErrorLoggingMiddleware(MiddlewareMixin):
     """
-    Middleware to automatically log exceptions to the database.
-    Only logs errors from internal application code (filters out library errors).
+    Middleware to log every request, every response, and all errors for Django/DRF APIs.
+    Returns standardized JSON error responses for API requests.
+    Generic, reusable, and distributable.
     """
-    
-    # Directories to consider as "internal" (application code)
     INTERNAL_PATHS = [
-        'App/',
-        'Jobstock/',
-        'templates/',
+        'App/', 'Jobstock/', 'templates/',
     ]
-    
-    # Directories to exclude (library/framework code)
     EXCLUDE_PATHS = [
-        'site-packages/',
-        'lib/python',
-        'venv/',
-        'venv0/',
-        'django/',
-        'jazzmin/',
-        'celery/',
-        'rest_framework/',
-        '__pycache__/',
+        'site-packages/', 'lib/python', 'venv/', 'venv0/', 'django/', 'jazzmin/', 'celery/', 'rest_framework/', '__pycache__/',
     ]
-    
-    # Sensitive fields to filter from request data
     SENSITIVE_FIELDS = [
-        'password',
-        'password1',
-        'password2',
-        'old_password',
-        'new_password',
-        'confirm_password',
-        'csrfmiddlewaretoken',
-        'token',
-        'api_key',
-        'secret',
-        'credit_card',
-        'cvv',
-        'ssn',
+        'password', 'password1', 'password2', 'old_password', 'new_password', 'confirm_password', 'csrfmiddlewaretoken', 'token', 'api_key', 'secret', 'credit_card', 'cvv', 'ssn',
     ]
-    
-    def process_exception(self, request, exception):
-        """
-        Called when a view raises an exception.
-        Logs the error if it's from internal application code.
-        """
+
+    def process_request(self, request):
+        # Log every incoming request
         try:
-            # Get error details
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            
-            # Extract internal frame from traceback
-            internal_frame = self._get_internal_frame(exc_traceback)
-            
-            if not internal_frame:
-                # Not an internal error, skip logging
+            logger = logging.getLogger("restapi.request")
+            request_data = self._get_safe_request_data(request)
+            logger.info(f"API Request: {request.method} {request.path}", extra={
+                "user": getattr(request, 'user', None),
+                "data": request_data,
+                "ip": self._get_client_ip(request),
+            })
+        except Exception as e:
+            print(f"Request logging failed: {e}")
+        return None
+
+    def process_response(self, request, response):
+        # Log every outgoing response
+        try:
+            logger = logging.getLogger("restapi.response")
+            logger.info(f"API Response: {request.method} {request.path}", extra={
+                "user": getattr(request, 'user', None),
+                "status_code": getattr(response, 'status_code', None),
+                "response": getattr(response, 'data', str(response)),
+            })
+        except Exception as e:
+            print(f"Response logging failed: {e}")
+        self.process_exception(request, response)
+        return response
+
+    def process_exception(self, request, exception):
+        # Centralized error handling for ApiException and all other exceptions
+        from App.utils.response import ApiException
+        try:
+            if isinstance(exception, ApiException):
+                # Log ApiException details
+                api_response = exception.response
+                logger = logging.getLogger("restapi.error")
+                logger.error(f"ApiException: {api_response.error}", extra={
+                    "path": request.path,
+                    "method": request.method,
+                    "user": getattr(request, 'user', None),
+                    "data": self._get_safe_request_data(request),
+                    "error_type": type(exception).__name__,
+                    "error_message": api_response.error,
+                    "error_details": api_response.error_details,
+                    "status_code": api_response.status_code,
+                })
+                # Return standardized JSON error response for API requests
+                if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
+                    return JsonResponse(api_response.to_dict(), status=api_response.status_code)
+                # For non-API requests, you may want to render an error page or similar
                 return None
-            
-            # Extract location details
-            file_path = self._get_relative_path(internal_frame.f_code.co_filename)
-            function_name = internal_frame.f_code.co_name
-            line_number = internal_frame.f_lineno
-            
-            # Generate error hash for deduplication
-            error_hash = self._generate_error_hash(
-                file_path, function_name, line_number, exc_type.__name__
-            )
-            
-            # Get full traceback
+            # Fallback: handle all other exceptions as before
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            internal_frame = self._get_internal_frame(exc_traceback)
+            file_path = self._get_relative_path(internal_frame.f_code.co_filename) if internal_frame else None
+            function_name = internal_frame.f_code.co_name if internal_frame else None
+            line_number = internal_frame.f_lineno if internal_frame else None
+            error_hash = self._generate_error_hash(file_path, function_name, line_number, exc_type.__name__ if exc_type else "Unknown")
             tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             error_traceback = ''.join(tb_lines)
-            
-            # Extract request information
             request_data = self._get_safe_request_data(request)
             ip_address = self._get_client_ip(request)
             user_agent = request.META.get('HTTP_USER_AGENT', '')[:2000]
-            
-            # Determine severity based on exception type
             severity = self._determine_severity(exc_type)
-            
-            # Import here to avoid circular imports
-            from App.models import ErrorLog
-            
-            # Check if this exact error already exists
-            existing_error = ErrorLog.objects.filter(error_hash=error_hash).first()
-            
-            if existing_error:
-                # Increment occurrence count
-                existing_error.increment_occurrence()
-            else:
-                # Create new error log
-                ErrorLog.objects.create(
-                    user=request.user if request.user.is_authenticated else None,
-                    error_type=exc_type.__name__,
-                    error_message=str(exc_value)[:5000],
-                    error_traceback=error_traceback[:10000],
-                    error_hash=error_hash,
-                    file_path=file_path,
-                    function_name=function_name,
-                    line_number=line_number,
-                    request_method=request.method,
-                    request_path=request.path[:2000],
-                    request_data=request_data,
-                    ip_address=ip_address,
-                    user_agent=user_agent,
-                    status_code=500,
-                    severity=severity,
-                    environment=self._get_environment(),
-                )
-            
+            # Log to database if internal error
+            if internal_frame:
+                try:
+                    from App.models import ErrorLog
+                    existing_error = ErrorLog.objects.filter(error_hash=error_hash).first()
+                    if existing_error:
+                        existing_error.increment_occurrence()
+                    else:
+                        ErrorLog.objects.create(
+                            user=request.user if hasattr(request, 'user') and request.user.is_authenticated else None,
+                            error_type=exc_type.__name__ if exc_type else "Unknown",
+                            error_message=str(exc_value)[:5000],
+                            error_traceback=error_traceback[:10000],
+                            error_hash=error_hash,
+                            file_path=file_path,
+                            function_name=function_name,
+                            line_number=line_number,
+                            request_method=request.method,
+                            request_path=request.path[:2000],
+                            request_data=request_data,
+                            ip_address=ip_address,
+                            user_agent=user_agent,
+                            status_code=500,
+                            severity=severity,
+                            environment=self._get_environment(),
+                        )
+                except Exception as e:
+                    print(f"Error logging to DB failed: {e}")
+            # Log to error logger
+            logger = logging.getLogger("restapi.error")
+            logger.error(f"REST API Error: {exc_type.__name__ if exc_type else 'Unknown'}: {str(exc_value)}", extra={
+                "path": request.path,
+                "method": request.method,
+                "user": getattr(request, 'user', None),
+                "data": request_data,
+                "error_type": exc_type.__name__ if exc_type else "Unknown",
+                "error_message": str(exc_value),
+                "traceback": error_traceback,
+            })
+            # Return standardized JSON error response for API requests
+            if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
+                return JsonResponse({
+                    "success": False,
+                    "error_type": exc_type.__name__ if exc_type else "Unknown",
+                    "error_message": str(exc_value),
+                    "request_path": request.path,
+                    "request_method": request.method,
+                    "traceback": error_traceback,
+                }, status=500)
         except Exception as e:
-            # If error logging itself fails, print to console
             print(f"Error logging middleware failed: {e}")
             traceback.print_exc()
-        
-        # Return None to continue with normal exception handling
         return None
     
     def _get_internal_frame(self, tb):
