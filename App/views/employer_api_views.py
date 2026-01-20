@@ -26,9 +26,8 @@ class EmployerSubmitJobAPI(APIView):
         is_update = job_id is not None
         serializer = JobCreateUpdateSerializer(data=request.data, partial=is_update)
         if not serializer.is_valid():
-            raise ApiResponse.validation_error(errors=serializer.errors)
-            resp = ApiResponse.error(message="Invalid data", error_details=serializer.errors)
-            return Response(resp.to_dict(), status=resp.status_code)
+              from rest_framework.exceptions import ValidationError
+              raise ValidationError(serializer.errors)
         try:
             # All dropdowns are string values; pass as-is to service layer
             if is_update:

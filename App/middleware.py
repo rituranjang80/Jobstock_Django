@@ -56,7 +56,7 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
             })
         except Exception as e:
             print(f"Response logging failed: {e}")
-        self.process_exception(request, response)
+       #self.process_exception(request, response)
         return response
 
     def process_exception(self, request, exception):

@@ -91,9 +91,23 @@ class JobService(BaseService):
         Returns:
             Created Job object
         """
+        from django.utils.text import slugify
+        from django.db import IntegrityError
         job = Job()
         JobService._populate_job_fields(job, data, user)
-        job.save()
+        # Ensure slug is unique
+        base_slug = slugify(job.title)
+        slug = base_slug
+        counter = 1
+        while Job.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        job.slug = slug
+        try:
+            job.save()
+        except IntegrityError as e:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({"slug": ["A job with this slug already exists."]})
         return job
     
     @staticmethod
