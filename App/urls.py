@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/resumes/", include('App.urls_api_resume')),
     path("api/menu/", include('App.urls_api_menu')),
     path("api/auth/", include('App.urls_api_auth')),
+    path("api/employer/", include('App.urls_api_employer')),
 
     # Swagger and Redoc API docs
     path("api/docs/", include('App.urls_swagger')),

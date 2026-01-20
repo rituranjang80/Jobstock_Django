@@ -150,29 +150,60 @@ class JobService(BaseService):
         if 'company_logo' in data and data['company_logo']:
             job.company_logo = data['company_logo']
         
-        # Dropdown fields
+        # Dropdown fields (all as value string)
         job.job_category = JobService._get_dropdown_item(data.get('job_category'))
         job.job_type = JobService._get_dropdown_item(data.get('job_type'))
         job.job_level = JobService._get_dropdown_item(data.get('job_level'))
-        job.experience_required = JobService._get_dropdown_item(data.get('experience'))
-        job.qualification_required = JobService._get_dropdown_item(data.get('qualification'))
-        job.gender_preference = JobService._get_dropdown_item(data.get('gender'))
+        job.experience_required = JobService._get_dropdown_item(data.get('experience_required'))
+        job.qualification_required = JobService._get_dropdown_item(data.get('qualification_required'))
+        job.gender_preference = JobService._get_dropdown_item(data.get('gender_preference'))
         job.total_openings = JobService._get_dropdown_item(data.get('total_openings'))
         job.job_fee_type = JobService._get_dropdown_item(data.get('job_fee_type'))
         job.country = JobService._get_dropdown_item(data.get('country'))
         job.state_city = JobService._get_dropdown_item(data.get('state_city'))
         
         # Salary
-        min_sal = data.get('min_salary', '').replace('$', '').replace(',', '').strip()
-        max_sal = data.get('max_salary', '').replace('$', '').replace(',', '').strip()
-        job.min_salary = min_sal if min_sal else None
-        job.max_salary = max_sal if max_sal else None
+        min_salary_raw = data.get('min_salary', None)
+        max_salary_raw = data.get('max_salary', None)
+        def parse_salary(val):
+            if val is None:
+                return None
+            if isinstance(val, str):
+                val = val.replace('$', '').replace(',', '').strip()
+                try:
+                    return float(val) if val else None
+                except Exception:
+                    return None
+            if isinstance(val, (int, float)):
+                return val
+            try:
+                # Decimal or other numeric
+                return float(val)
+            except Exception:
+                return None
+        job.min_salary = parse_salary(min_salary_raw)
+        job.max_salary = parse_salary(max_salary_raw)
         
         # Dates
-        start_date = data.get('start_date', '').strip()
-        deadline = data.get('deadline', '').strip()
-        job.start_date = start_date if start_date else None
-        job.deadline = deadline if deadline else None
+        def parse_date(val):
+            if val is None:
+                return None
+            if isinstance(val, str):
+                val = val.strip() if val is not None else ''
+                if not val:
+                    return None
+                try:
+                    from datetime import datetime
+                    return datetime.strptime(val, "%Y-%m-%d").date()
+                except Exception:
+                    return None
+            if hasattr(val, 'year') and hasattr(val, 'month') and hasattr(val, 'day'):
+                return val
+            return None
+        start_date_val = data.get('start_date', None)
+        deadline_val = data.get('deadline', None)
+        job.start_date = parse_date(start_date_val)
+        job.deadline = parse_date(deadline_val)
         
         # Other fields
         job.skills = data.get('skills', '')
@@ -182,10 +213,29 @@ class JobService(BaseService):
         job.video_url = data.get('video_url', '')
         
         # Location coordinates
-        lat = data.get('latitude', '').strip()
-        lon = data.get('longitude', '').strip()
-        job.latitude = lat if lat else None
-        job.longitude = lon if lon else None
+        def parse_coord(val):
+            if val is None:
+                return None
+            if isinstance(val, (int, float)):
+                return val
+            try:
+                # Decimal
+                from decimal import Decimal
+                if isinstance(val, Decimal):
+                    return float(val)
+            except Exception:
+                pass
+            if isinstance(val, str):
+                val = val.strip()
+                if not val:
+                    return None
+                try:
+                    return float(val)
+                except Exception:
+                    return None
+            return None
+        job.latitude = parse_coord(data.get('latitude', None))
+        job.longitude = parse_coord(data.get('longitude', None))
         
         # Set posted by and status
         job.posted_by = user

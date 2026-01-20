@@ -84,47 +84,55 @@ class JobDetailSerializer(serializers.ModelSerializer):
         return []
 
 
-class JobCreateUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for creating/updating jobs"""
+class JobCreateUpdateSerializer(serializers.Serializer):
+    """Serializer for creating/updating jobs with all DropdownMaster fields as string (value)."""
+    title = serializers.CharField(max_length=255)
+    company_logo = serializers.ImageField(required=False, allow_null=True)
+    job_summary = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    responsibilities = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    qualifications = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    job_category = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    job_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    job_level = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    experience_required = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    qualification_required = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    gender_preference = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    min_salary = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    max_salary = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    start_date = serializers.DateField(required=False, allow_null=True)
+    deadline = serializers.DateField(required=False, allow_null=True)
+    total_openings = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    job_fee_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    skills = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    permanent_address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    temporary_address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    country = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    state_city = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    zip_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    video_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    latitude = serializers.DecimalField(max_digits=10, decimal_places=7, required=False, allow_null=True)
+    longitude = serializers.DecimalField(max_digits=10, decimal_places=7, required=False, allow_null=True)
+    is_active = serializers.BooleanField(required=False)
     publish_to_boards = serializers.MultipleChoiceField(
         choices=['indeed', 'ziprecruiter', 'linkedin', 'jobelephant'],
         required=False,
         write_only=True
     )
-    
-    class Meta:
-        model = Job
-        fields = [
-            'title', 'company_logo', 'job_summary', 'responsibilities', 'qualifications',
-            'job_category', 'job_type', 'job_level', 'experience_required',
-            'qualification_required', 'gender_preference', 'min_salary', 'max_salary',
-            'start_date', 'deadline', 'total_openings', 'job_fee_type', 'skills',
-            'permanent_address', 'temporary_address', 'country', 'state_city',
-            'zip_code', 'video_url', 'latitude', 'longitude', 'is_active',
-            'publish_to_boards'
-        ]
-        extra_kwargs = {
-            'job_category': {'required': False},
-            'job_type': {'required': False}
-        }
-    
+    job_id = serializers.IntegerField(required=False)
+
     def validate_deadline(self, value):
-        """Ensure deadline is in the future"""
         from django.utils import timezone
         if value and value < timezone.now().date():
             raise serializers.ValidationError("Deadline must be in the future")
         return value
-    
+
     def validate(self, data):
-        """Validate salary range"""
         min_sal = data.get('min_salary')
         max_sal = data.get('max_salary')
-        
         if min_sal and max_sal and min_sal > max_sal:
             raise serializers.ValidationError({
                 'min_salary': "Minimum salary cannot be greater than maximum salary"
             })
-        
         return data
 
 
