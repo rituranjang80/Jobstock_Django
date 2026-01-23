@@ -38,6 +38,7 @@ class EmployerSubmitJobAPI(APIView):
                 resp = ApiResponse.created(data={"id": job.id, "title": job.title}, message="Job created")
             return Response(resp.to_dict(), status=resp.status_code)
         except Exception as e:
-            action = "updating" if is_update else "creating"
-            resp = ApiResponse.error(message=f"Error {action} job", error=str(e))
-            return Response(resp.to_dict(), status=resp.status_code)
+            raise e
+            # action = "updating" if is_update else "creating"
+            # resp = ApiResponse.error(message=f"Error {action} job", error=str(e))
+            # return Response(resp.to_dict(), status=resp.status_code)

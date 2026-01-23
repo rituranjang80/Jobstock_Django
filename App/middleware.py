@@ -60,34 +60,29 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
         return response
 
     def process_exception(self, request, exception):
-        # Centralized error handling for ApiException and all other exceptions
+        # Only insert error in database and return error object, no logging
         from App.utils.response import ApiException
         try:
-            if isinstance(exception, ApiException):
-                # Log ApiException details
-                api_response = exception.response
-                logger = logging.getLogger("restapi.error")
-                logger.error(f"ApiException: {api_response.error}", extra={
-                    "path": request.path,
-                    "method": request.method,
-                    "user": getattr(request, 'user', None),
-                    "data": self._get_safe_request_data(request),
-                    "error_type": type(exception).__name__,
-                    "error_message": api_response.error,
-                    "error_details": api_response.error_details,
-                    "status_code": api_response.status_code,
-                })
-                # Return standardized JSON error response for API requests
-                if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
-                    return JsonResponse(api_response.to_dict(), status=api_response.status_code)
-                # For non-API requests, you may want to render an error page or similar
-                return None
-            # Fallback: handle all other exceptions as before
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            internal_frame = self._get_internal_frame(exc_traceback)
-            file_path = self._get_relative_path(internal_frame.f_code.co_filename) if internal_frame else None
-            function_name = internal_frame.f_code.co_name if internal_frame else None
-            line_number = internal_frame.f_lineno if internal_frame else None
+            # Find the last frame in the traceback that is from internal application code
+            tb = exc_traceback
+            internal_frame = None
+            while tb is not None:
+                frame = tb.tb_frame
+                filename = frame.f_code.co_filename.replace('\\', '/').replace('\\', '/')
+                is_internal = any(path in filename for path in self.INTERNAL_PATHS)
+                is_excluded = any(path in filename for path in self.EXCLUDE_PATHS)
+                if is_internal and not is_excluded:
+                    internal_frame = frame
+                tb = tb.tb_next
+            if internal_frame:
+                file_path = self._get_relative_path(internal_frame.f_code.co_filename)
+                function_name = internal_frame.f_code.co_name
+                line_number = internal_frame.f_lineno
+            else:
+                file_path = None
+                function_name = None
+                line_number = None
             error_hash = self._generate_error_hash(file_path, function_name, line_number, exc_type.__name__ if exc_type else "Unknown")
             tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             error_traceback = ''.join(tb_lines)
@@ -95,15 +90,16 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
             ip_address = self._get_client_ip(request)
             user_agent = request.META.get('HTTP_USER_AGENT', '')[:2000]
             severity = self._determine_severity(exc_type)
-            # Log to database if internal error
+            error_obj = None
             if internal_frame:
                 try:
                     from App.models import ErrorLog
                     existing_error = ErrorLog.objects.filter(error_hash=error_hash).first()
                     if existing_error:
                         existing_error.increment_occurrence()
+                        error_obj = existing_error
                     else:
-                        ErrorLog.objects.create(
+                        error_obj = ErrorLog.objects.create(
                             user=request.user if hasattr(request, 'user') and request.user.is_authenticated else None,
                             error_type=exc_type.__name__ if exc_type else "Unknown",
                             error_message=str(exc_value)[:5000],
@@ -117,36 +113,42 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                             request_data=request_data,
                             ip_address=ip_address,
                             user_agent=user_agent,
-                            status_code=500,
+                            status_code=501,
                             severity=severity,
                             environment=self._get_environment(),
                         )
                 except Exception as e:
-                    print(f"Error logging to DB failed: {e}")
-            # Log to error logger
-            logger = logging.getLogger("restapi.error")
-            logger.error(f"REST API Error: {exc_type.__name__ if exc_type else 'Unknown'}: {str(exc_value)}", extra={
-                "path": request.path,
-                "method": request.method,
-                "user": getattr(request, 'user', None),
-                "data": request_data,
-                "error_type": exc_type.__name__ if exc_type else "Unknown",
-                "error_message": str(exc_value),
-                "traceback": error_traceback,
-            })
-            # Return standardized JSON error response for API requests
+                    error_obj = {
+                        "error": "Error logging to DB failed",
+                        "details": str(e)
+                    }
+            # Return error object as JSON
             if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
-                return JsonResponse({
-                    "success": False,
-                    "error_type": exc_type.__name__ if exc_type else "Unknown",
-                    "error_message": str(exc_value),
-                    "request_path": request.path,
-                    "request_method": request.method,
-                    "traceback": error_traceback,
-                }, status=500)
+                # If error_obj is a model instance, serialize its fields
+                if hasattr(error_obj, 'id'):
+                    error_json = {
+                        "success": False,
+                        "error_id": getattr(error_obj, "id", None),
+                        "error_type": getattr(error_obj, "error_type", None),
+                        "error_message": getattr(error_obj, "error_message", None),
+                        "file_path": getattr(error_obj, "file_path", None),
+                        "function_name": getattr(error_obj, "function_name", None),
+                        "line_number": getattr(error_obj, "line_number", None),
+                        "request_method": getattr(error_obj, "request_method", None),
+                        "request_path": getattr(error_obj, "request_path", None),
+                        "request_data": getattr(error_obj, "request_data", None),
+                        "ip_address": getattr(error_obj, "ip_address", None),
+                        "user_agent": getattr(error_obj, "user_agent", None),
+                        "status_code": getattr(error_obj, "status_code", None),
+                        "severity": getattr(error_obj, "severity", None),
+                        "environment": getattr(error_obj, "environment", None),
+                        "error_traceback": getattr(error_obj, "error_traceback", None),
+                    }
+                else:
+                    error_json = error_obj
+                return JsonResponse(error_json, status=501)
         except Exception as e:
-            print(f"Error logging middleware failed: {e}")
-            traceback.print_exc()
+            return JsonResponse({"error": "Error logging middleware failed", "details": str(e)}, status=501)
         return None
     
     def _get_internal_frame(self, tb):

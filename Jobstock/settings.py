@@ -62,7 +62,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "App.middleware.ErrorLoggingMiddleware",  # Custom error logging middleware
     "corsheaders.middleware.CorsMiddleware",  # Add this at the top, before CommonMiddleware
-    "restapi_error_middleware.RestApiErrorMiddleware",  # Custom REST API error handling middleware
+    #restapi_error_middleware.RestApiErrorMiddleware",  # Custom REST API error handling middleware
 ]
 
 ROOT_URLCONF = "Jobstock.urls"
