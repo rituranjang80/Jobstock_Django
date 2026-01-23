@@ -64,8 +64,9 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
         from App.utils.response import ApiException
         try:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            # Find the last frame in the traceback that is from internal application code
+            # Collect all application frames (not libraries) in the traceback
             tb = exc_traceback
+            app_stack = []
             internal_frame = None
             while tb is not None:
                 frame = tb.tb_frame
@@ -73,12 +74,19 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                 is_internal = any(path in filename for path in self.INTERNAL_PATHS)
                 is_excluded = any(path in filename for path in self.EXCLUDE_PATHS)
                 if is_internal and not is_excluded:
+                    app_stack.append({
+                        'file_path': self._get_relative_path(filename),
+                        'function_name': frame.f_code.co_name,
+                        'line_number': frame.f_lineno
+                    })
                     internal_frame = frame
                 tb = tb.tb_next
-            if internal_frame:
-                file_path = self._get_relative_path(internal_frame.f_code.co_filename)
-                function_name = internal_frame.f_code.co_name
-                line_number = internal_frame.f_lineno
+            # Use the last application frame for main error location
+            if app_stack:
+                last_app = app_stack[-1]
+                file_path = last_app['file_path']
+                function_name = last_app['function_name']
+                line_number = last_app['line_number']
             else:
                 file_path = None
                 function_name = None
@@ -91,7 +99,7 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
             user_agent = request.META.get('HTTP_USER_AGENT', '')[:2000]
             severity = self._determine_severity(exc_type)
             error_obj = None
-            if internal_frame:
+            if app_stack:
                 try:
                     from App.models import ErrorLog
                     existing_error = ErrorLog.objects.filter(error_hash=error_hash).first()
@@ -122,7 +130,7 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                         "error": "Error logging to DB failed",
                         "details": str(e)
                     }
-            # Return error object as JSON
+            # Return error object as JSON, including application call stack
             if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
                 # If error_obj is a model instance, serialize its fields
                 if hasattr(error_obj, 'id'):
@@ -136,13 +144,15 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                         "line_number": getattr(error_obj, "line_number", None),
                         "request_method": getattr(error_obj, "request_method", None),
                         "request_path": getattr(error_obj, "request_path", None),
-                        "request_data": getattr(error_obj, "request_data", None),
+                        "request_data":request_data if 'request_data' in locals() else getattr(error_obj, "request_data", None),
                         "ip_address": getattr(error_obj, "ip_address", None),
                         "user_agent": getattr(error_obj, "user_agent", None),
                         "status_code": getattr(error_obj, "status_code", None),
                         "severity": getattr(error_obj, "severity", None),
                         "environment": getattr(error_obj, "environment", None),
-                        "error_traceback": getattr(error_obj, "error_traceback", None),
+                        "app_call_stack": app_stack,
+                        "error_traceback": getattr(error_obj, "error_traceback", None)
+                       
                     }
                 else:
                     error_json = error_obj
@@ -193,9 +203,8 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
         return hashlib.sha256(hash_string.encode()).hexdigest()[:64]
     
     def _get_safe_request_data(self, request):
-        """Get request data with sensitive fields filtered"""
+        """Get request data with sensitive fields filtered, including DRF request.data and JSON body"""
         data = {}
-        
         try:
             # Get GET parameters
             if request.GET:
@@ -203,22 +212,49 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                     k: '***FILTERED***' if k.lower() in self.SENSITIVE_FIELDS else v
                     for k, v in request.GET.items()
                 }
-            
             # Get POST parameters
             if request.POST:
                 data['POST'] = {
                     k: '***FILTERED***' if k.lower() in self.SENSITIVE_FIELDS else v
                     for k, v in request.POST.items()
                 }
-            
+            # Get DRF request.data if available (for API views)
+            drf_data = None
+            if hasattr(request, 'data'):
+                drf_data = request.data
+                if isinstance(drf_data, dict):
+                    filtered_drf = {
+                        k: '***FILTERED***' if k.lower() in self.SENSITIVE_FIELDS else v
+                        for k, v in drf_data.items()
+                    }
+                    data['DATA'] = filtered_drf
+                else:
+                    data['DATA'] = str(drf_data)
+            # Get JSON body if present and not already captured
+            if request.method in ['POST', 'PUT', 'PATCH'] and 'DATA' not in data:
+                content_type = request.META.get('CONTENT_TYPE', '')
+                if 'application/json' in content_type:
+                    try:
+                        import json
+                        body_unicode = request.body.decode('utf-8')
+                        if body_unicode:
+                            json_data = json.loads(body_unicode)
+                            filtered_json = {
+                                k: '***FILTERED***' if k.lower() in self.SENSITIVE_FIELDS else v
+                                for k, v in json_data.items()
+                            }
+                            data['JSON'] = filtered_json
+                    except Exception:
+                        data['JSON'] = {'_error': 'Could not parse JSON body'}
+            # If no data found, mark as empty
+            if not data:
+                data = {'_empty': True}
             # Limit data size
             data_str = str(data)
             if len(data_str) > 5000:
                 data = {'_truncated': True, 'size': len(data_str)}
-        
         except Exception:
             data = {'_error': 'Could not extract request data'}
-        
         return data
     
     def _get_client_ip(self, request):
