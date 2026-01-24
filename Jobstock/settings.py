@@ -65,6 +65,10 @@ MIDDLEWARE = [
     #restapi_error_middleware.RestApiErrorMiddleware",  # Custom REST API error handling middleware
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 ROOT_URLCONF = "Jobstock.urls"
 
 TEMPLATES = [

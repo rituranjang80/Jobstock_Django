@@ -22,14 +22,52 @@ class EmployerSubmitJobAPI(APIView):
         operation_description='Create or update a job posting as employer. If job_id is provided, updates; else creates.'
     )
     def post(self, request):
-        job_id = request.data.get('job_id')
+        # Map camelCase keys to snake_case for serializer compatibility
+        def camel_to_snake(name):
+            import re
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+            return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+        # Only map known fields to avoid accidental data loss
+        key_map = {
+            'jobCategory': 'job_category',
+            'jobType': 'job_type',
+            'jobLevel': 'job_level',
+            'experience': 'experience_required',
+            'qualification': 'qualification_required',
+            'gender': 'gender_preference',
+            'totalOpenings': 'total_openings',
+            'jobFeeType': 'job_fee_type',
+            'country': 'country',
+            'city': 'state_city',
+            'minSalary': 'min_salary',
+            'maxSalary': 'max_salary',
+            'permanentAddress': 'permanent_address',
+            'temporaryAddress': 'temporary_address',
+            'zipCode': 'zip_code',
+            'videoUrl': 'video_url',
+            'startDate': 'start_date',
+            'deadline': 'deadline',
+            'skills': 'skills',
+            'latitude': 'latitude',
+            'longitude': 'longitude',
+            'job_id': 'job_id',
+            'title': 'title',
+            'jobSummary': 'job_summary',
+            'responsibilities': 'responsibilities',
+            'qualifications': 'qualifications',
+        }
+        mapped_data = {}
+        for k, v in request.data.items():
+            mapped_data[key_map.get(k, camel_to_snake(k))] = v
+
+        job_id = mapped_data.get('job_id')
         is_update = job_id is not None
-        serializer = JobCreateUpdateSerializer(data=request.data, partial=is_update)
+        serializer = JobCreateUpdateSerializer(data=mapped_data, partial=is_update)
         if not serializer.is_valid():
-              from rest_framework.exceptions import ValidationError
-              raise ValidationError(serializer.errors)
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(serializer.errors)
         try:
-            # All dropdowns are string values; pass as-is to service layer
             if is_update:
                 job = JobService.update_job(job_id, serializer.validated_data, request.user)
                 resp = ApiResponse.success(data={"id": job.id, "title": job.title}, message="Job updated")
