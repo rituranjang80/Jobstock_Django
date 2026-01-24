@@ -89,7 +89,7 @@ export default function HomeFour() {
                 <div className="row justify-content-center mb-2">
                     <div className="col-xl-4 col-lg-7 col-md-10 text-center">
                         <div className="center mb-4">
-                            <h5 className="fw-medium lh-lg">Join over 2,000 companies around the world that trust the <span className="text-main">JobStock</span> platforms</h5>
+                            <h5 className="fw-medium lh-lg">Join over 2,000 companies around the world that trust the <span className="text-main">Reetch</span> platforms</h5>
                         </div>
                     </div>
                 </div>
@@ -242,7 +242,7 @@ export default function HomeFour() {
                         
                         <div className="call-action-wrap">
                             <div className="sec-heading center">
-                                <h2 className="lh-base mb-3 text-light">Find The Perfect Job<br/>on JobStock That is Superb For You</h2>
+                                <h2 className="lh-base mb-3 text-light">Find The Perfect Job<br/>on Reetch That is Superb For You</h2>
                                 <p className="fs-6 text-light">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias</p>
                             </div>
                             <div className="call-action-buttons mt-3">

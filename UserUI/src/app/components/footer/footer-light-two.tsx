@@ -141,7 +141,7 @@ export default function FooterLightTwo() {
         <div className="footer-bottom">
             <div className="container">
                 <div className="row align-items-center justify-content-between">
-                    <p className="mb-0 text-center">© {new Date().getFullYear()}  JobStock Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-dark'>Shreethemes</Link>.</p>
+                    <p className="mb-0 text-center">© {new Date().getFullYear()}  Reetch Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-dark'>Shreethemes</Link>.</p>
                 </div>
             </div>
         </div>

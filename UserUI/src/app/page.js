@@ -28,7 +28,7 @@ export default function Home() {
                     <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                         <h6 className="text-green fw-medium d-inline-flex align-items-center mb-3"><span className="bg-green w-10 h-05 me-2"></span>Get Hot & Trending Jobs</h6>
                         <h1 className="mb-4">Real Jobs, Real People, Real Success</h1>
-                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                         <div className="lios-vrst">
                             <HomeBannerCounter/>
                         </div>
@@ -37,7 +37,7 @@ export default function Home() {
                     <div className="col-xl-5 col-lg-5 col-md-12 col-sm-12">
                         <div className="hero-search-wrap">
                             <div className="hero-search">
-                                <h1>Grow Your Career with <span className="text-main">JobStock</span></h1>
+                                <h1>Grow Your Career with <span className="text-main">Reetch</span></h1>
                             </div>
                             <FormOne/>
                         </div>
@@ -51,7 +51,7 @@ export default function Home() {
                 <div className="row justify-content-center mb-2">
                     <div className="col-xl-4 col-lg-7 col-md-10 text-center">
                         <div className="center mb-4">
-                            <h5 className="fw-medium lh-lg">Join over 2,000 companies around the world that trust the <span className="text-main">JobStock</span> platforms</h5>
+                            <h5 className="fw-medium lh-lg">Join over 2,000 companies around the world that trust the <span className="text-main">Reetch</span> platforms</h5>
                         </div>
                     </div>
                 </div>

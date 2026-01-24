@@ -33,7 +33,7 @@ export default function HomeEight() {
                     <div className="col-xl-7 col-lg-7 col-md-12 col-sm-12 pe-xl-5 pe-lg-4">
                         <h6 className="text-main bg-light-main py-2 pe-3 ps-2 rounded-5 fw-medium d-inline-flex align-items-center mb-3"><span className="bg-main label rounded-pill me-2">New</span>Hire with hourly basis</h6>
                         <h1 className="mb-4">Remote Work Platform For Digital Team</h1>
-                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                         <div className="features-groupss my-4">
                             <ul className="row gx-3 gy-4 p-0">
                                 <li className="fw-medium col-xl-6 col-lg-6 col-6"><span className="square--30 circle d-inline-flex align-items-center justify-content-center text-success bg-light-success me-2"><i className="fa-solid fa-check"></i></span>5 Job Posted</li>

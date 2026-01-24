@@ -22,7 +22,7 @@ export default function Signup() {
                                     <div className="form-heads d-block mb-4">
                                         <div className="d-flex align-items-center justify-content-start gap-3">
                                             <div className="head-caps">
-                                                <h4>Create your JobStock profile</h4>
+                                                <h4>Create your Reetch profile</h4>
                                                 <p>Search & apply to jobs from India's No.1 Job Site</p>
                                             </div>
                                         </div>

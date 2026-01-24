@@ -3,7 +3,7 @@ Job Application Service
 Handles resume submissions from both direct applications and external job boards
 (JobElephant, ZipRecruiter, Indeed, LinkedIn)
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from typing import Dict, Any, Optional, List

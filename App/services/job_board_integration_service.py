@@ -6,7 +6,7 @@ Handles posting jobs to and receiving applications from external job boards:
 - Indeed Employer
 - LinkedIn Recruiter
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from typing import Dict, Any, Optional, List

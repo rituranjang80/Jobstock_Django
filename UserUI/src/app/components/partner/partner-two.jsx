@@ -15,7 +15,7 @@ export default function PartnerTwo() {
                 <div className="row justify-content-center mb-2">
                     <div className="col-lg-7 col-md-10 text-center">
                         <div className="sec-heading center mb-4">
-                            <h5 className="text-light opacity-75 fw-medium">The fastedt-growing companies use JobStock</h5>
+                            <h5 className="text-light opacity-75 fw-medium">The fastedt-growing companies use Reetch</h5>
                         </div>
                     </div>
                 </div>

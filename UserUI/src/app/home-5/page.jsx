@@ -23,8 +23,8 @@ export default function HomeFive() {
         <div className="image-cover hero-header p-150" style={{backgroundImage:`url('/img/slider-5.jpg')`, backgroundRepeat:'no-repeat'}} data-overlay="6">
             <div className="container">
                 <div className="inner-banner-text text-center">
-                    <h1>Discover Great Job Offer<br/>With JobStock</h1>
-                    <p className="fs-6">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                    <h1>Discover Great Job Offer<br/>With Reetch</h1>
+                    <p className="fs-6">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                 </div>
                 <div className="full-search-2 mt-5">
                     <FormThree/>

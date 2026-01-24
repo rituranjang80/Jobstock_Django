@@ -6,7 +6,7 @@ This is a production-ready, enterprise-level service layer architecture for mana
 
 **Database Table:** `app_job`
 
-**Author:** JobStock Development Team  
+**Author:** Reetch Development Team  
 **Date:** December 22, 2025
 
 ---

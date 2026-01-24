@@ -2,7 +2,7 @@
 Django Forms for Job Management (MVT - Template-based views)
 Uses the service layer for all business logic
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from django import forms

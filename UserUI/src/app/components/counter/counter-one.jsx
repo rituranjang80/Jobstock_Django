@@ -6,12 +6,12 @@ let data = [
     {
         value:97,
         Symbol:'%',
-        desc:`Success in finding jobs on JobStock Platform`
+        desc:`Success in finding jobs on Reetch Platform`
     },
     {
         value:68,
         Symbol:'X',
-        desc:`Potential increase traffice rather than JobStock website.`
+        desc:`Potential increase traffice rather than Reetch website.`
     },
     {
         value:25,

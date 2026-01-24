@@ -2,7 +2,7 @@
 Generic Base Service Layer - Production Ready
 Provides reusable CRUD operations for all models
 Supports both Django Templates (MVT) and REST API
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from typing import Dict, Any, Optional, List, Type, Union

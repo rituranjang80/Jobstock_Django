@@ -2,7 +2,7 @@
 REST API Views (Django REST Framework)
 All business logic is in services - views are thin API controllers
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from rest_framework import status

@@ -13,8 +13,8 @@ const JakartaSans = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "JobStock - Next Ts Job Listing, Job Portal Landing & Admin Dashboard Template",
-  description: "JobStock - Next Ts Job Listing, Job Portal Landing & Admin Dashboard Template"
+  title: "Reetch - Next Ts Job Listing, Job Portal Landing & Admin Dashboard Template",
+  description: "Reetch - Next Ts Job Listing, Job Portal Landing & Admin Dashboard Template"
 };
 
 export default function RootLayout({

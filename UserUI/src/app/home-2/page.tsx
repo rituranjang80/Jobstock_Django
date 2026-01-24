@@ -25,7 +25,7 @@ export default function HomeTwo() {
                         <div className="inner-banner-text text-center">
                             <div className="inner-banner-eclips mb-2"><span className="label p-2 px-4 rounded-5 fw-medium text-light bg-main">Get Your Hot Jobs</span></div>
                             <h1>Find the great jobs<br/>offer for you</h1>
-                            <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                            <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                         </div>
                         <div className="search-from-clasic mt-5">
                             <div className="hero-search-content">

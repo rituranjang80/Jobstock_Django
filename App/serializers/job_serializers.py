@@ -3,7 +3,7 @@ REST API Serializers for Job Management
 For use with Django REST Framework
 Utilizes the service layer for all business logic
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from rest_framework import serializers

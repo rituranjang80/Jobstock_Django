@@ -1181,12 +1181,12 @@ def global_categories2(request):
 def global_ctrs2(request):
     ctrs2 = [
         {
-            'title' : 'Success in finding jobs on JobStock Platform',
+            'title' : 'Success in finding jobs on Reetch Platform',
             'number' : '97',
             'symbol' : '%',
         },
         {
-            'title' : 'Potential increase traffice rather than JobStock website.',
+            'title' : 'Potential increase traffice rather than Reetch website.',
             'number' : '68',
             'symbol' : 'X',
         },

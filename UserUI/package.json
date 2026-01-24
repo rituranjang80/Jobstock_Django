@@ -1,7 +1,7 @@
 {
   "name": "job-stock",
   "version": "1.0.0",
-  "description": "JobStock - Next Js Job Listing, Job Portal Landing & Admin Dashboard Template",
+  "description": "Reetch - Next Js Job Listing, Job Portal Landing & Admin Dashboard Template",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -34,7 +34,7 @@
 {
   "name": "job-stock",
   "version": "1.0.0",
-  "description": "JobStock - Next Js Job Listing, Job Portal Landing & Admin Dashboard Template",
+  "description": "Reetch - Next Js Job Listing, Job Portal Landing & Admin Dashboard Template",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

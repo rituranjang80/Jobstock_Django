@@ -141,7 +141,7 @@ export default function FooterBlack() {
                 <div className="container">
                     <div className="row align-items-center justify-content-center">
                         <div className="col-xl-4 col-lg-5 col-md-5">
-                            <p className="mb-0 text-center">© {new Date().getFullYear()}  JobStock Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-white'>Shreethemes</Link>.</p>
+                            <p className="mb-0 text-center">© {new Date().getFullYear()}  Reetch Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-white'>Shreethemes</Link>.</p>
                         </div>
                     </div>
                 </div>

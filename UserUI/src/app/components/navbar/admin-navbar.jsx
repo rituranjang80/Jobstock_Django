@@ -61,7 +61,7 @@ export default function AdminNavbar() {
                                             </div>
                                             <div className="ntf-list-groups-single">
                                                 <div className="ntf-list-groups-icon text-warning"><i className="fa-solid fa-envelope"></i></div>
-                                                <div className="ntf-list-groups-caption"><p className="small">Mortin Denver Accepted Your Resume <strong className="text-success">On JobStock</strong></p></div>
+                                                <div className="ntf-list-groups-caption"><p className="small">Mortin Denver Accepted Your Resume <strong className="text-success">On Reetch</strong></p></div>
                                             </div>
                                             <div className="ntf-list-groups-single">
                                                 <div className="ntf-list-groups-icon text-success"><i className="fa-solid fa-sack-dollar"></i></div>
@@ -244,7 +244,7 @@ export default function AdminNavbar() {
                                             </div>
                                             <div className="ntf-list-groups-single">
                                                 <div className="ntf-list-groups-icon text-warning"><i className="fa-solid fa-envelope"></i></div>
-                                                <div className="ntf-list-groups-caption"><p className="small">Mortin Denver Accepted Your Resume <strong className="text-success">On JobStock</strong></p></div>
+                                                <div className="ntf-list-groups-caption"><p className="small">Mortin Denver Accepted Your Resume <strong className="text-success">On Reetch</strong></p></div>
                                             </div>
                                             <div className="ntf-list-groups-single">
                                                 <div className="ntf-list-groups-icon text-success"><i className="fa-solid fa-sack-dollar"></i></div>

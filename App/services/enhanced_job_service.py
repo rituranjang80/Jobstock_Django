@@ -3,7 +3,7 @@ Enhanced Job Service - Production Ready
 Complete job management with external job board integration support
 Database Table: app_job
 Supports: JobElephant, ZipRecruiter, Indeed Employer, LinkedIn Recruiter
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from typing import Dict, Any, Optional, List

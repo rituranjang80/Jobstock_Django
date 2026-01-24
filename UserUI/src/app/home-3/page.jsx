@@ -23,7 +23,7 @@ export default function HomeThree() {
             <div className="container">
                 <div className="inner-banner-text text-center">
                     <h1 className="text-capitalize">Find the great exciting &<br/>remote-friendly jobs</h1>
-                    <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                    <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                 </div>
                 <div className="full-search-2 mt-5">
                     <FormThree/>
@@ -99,7 +99,7 @@ export default function HomeThree() {
 					<div className="col-xl-7 col-lg-10 col-md-12 col-sm-12">
 						<div className="call-action-wrap">
 							<div className="sec-heading center">
-								<h2 className="lh-base mb-3">Find The Perfect Job<br/>on JobStock That is Superb For You</h2>
+								<h2 className="lh-base mb-3">Find The Perfect Job<br/>on Reetch That is Superb For You</h2>
 								<p className="fs-6">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias</p>
 							</div>
 							<div className="call-action-buttons mt-3">

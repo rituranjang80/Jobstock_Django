@@ -26,7 +26,7 @@ export default function HomeTen() {
                     <div className="col-xl-7 col-lg-7 col-md-12 col-sm-12 pe-xl-5 pe-lg-4">
                         <h6 className="text-main bg-light-main py-2 pe-3 ps-2 rounded-5 fw-medium d-inline-flex align-items-center mb-3"><span className="bg-main label rounded-pill me-2">New</span>Hire with hourly basis</h6>
                         <h1 className="mb-4">Remote Work Platform For Digital Team</h1>
-                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                         <div className="position-relative mt-4">
                             <div className="bg-dot light w-100 h-2 position-relative"><span className="escolls square--30 circle d-inline-flex align-items-center justify-content-center bg-white fw-medium text-main position-absolute start-50 top-5">OR</span></div>
                         </div>

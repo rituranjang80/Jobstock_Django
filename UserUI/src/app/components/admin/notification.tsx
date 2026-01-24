@@ -21,7 +21,7 @@ export default function Notification() {
             </Link>
 
             <div className="ground-content">
-                <h6><Link href="#">Mortin Denver accepted your resume on <strong>JobStock</strong></Link></h6>
+                <h6><Link href="#">Mortin Denver accepted your resume on <strong>Reetch</strong></Link></h6>
                 <span className="small">20 min ago</span>
             </div>
         </div>

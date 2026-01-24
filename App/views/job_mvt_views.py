@@ -2,7 +2,7 @@
 Django Template-Based Views (MVT Pattern)
 All business logic is in services - views are thin controllers
 
-Author: JobStock Development Team
+Author: Reetch Development Team
 Date: December 22, 2025
 """
 from django.shortcuts import render, redirect, get_object_or_404

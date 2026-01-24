@@ -26,7 +26,7 @@ export default function HomeNine() {
                     <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12 pe-xl-4 pe-lg-3">
                         <h6 className="bg-transparent rounded-pill text-light py-2 pe-3 ps-2 rounded-5 fw-medium d-inline-flex align-items-center mb-3"><span className="label rounded-pill bg-main me-2">New</span>Collaborate with team</h6>
                         <h1 className="mb-4">Remote Work Platform For Digital Team</h1>
-                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on JobStock.</p>
+                        <p className="fs-5">Getting a new job is never easy. Check what new jobs we have in store for you on Reetch.</p>
                         <div className="d-flex align-items-center mt-5">
                             <div className="position-relative">
                                 <Link href="/half-map" className="btn btn-main fw-medium px-4">Explore All Jobs</Link>

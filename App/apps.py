@@ -8,7 +8,7 @@ from django.apps import AppConfig
 class AppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'App'
-    verbose_name = 'JobStock Application'
+    verbose_name = 'Reetch Application'
     
     def ready(self):
         """

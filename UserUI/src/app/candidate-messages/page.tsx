@@ -126,7 +126,7 @@ export default function CandidateMessages() {
                 
                 <div className="row">
                     <div className="col-md-12">
-                        <div className="py-3 text-center"><p className="mb-0">© {new Date().getFullYear()}  JobStock Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-dark'>Shreethemes</Link>.</p></div>
+                        <div className="py-3 text-center"><p className="mb-0">© {new Date().getFullYear()}  Reetch Design & Develop By <i className="fa-solid fa-heart text-red"></i> <Link href="https://shreethemes.in/" target='blank' className='text-dark'>Shreethemes</Link>.</p></div>
                     </div>
                 </div>
     

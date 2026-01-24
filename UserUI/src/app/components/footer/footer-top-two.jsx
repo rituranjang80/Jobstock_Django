@@ -10,7 +10,7 @@ export default function FooterTopTwo() {
                         
                         <div className="call-action-wrap">
                             <div className="sec-heading center">
-                                <h2 className="mb-3 lh-base text-light">Find The Perfect Job<br/>on JobStock That is Superb For You</h2>
+                                <h2 className="mb-3 lh-base text-light">Find The Perfect Job<br/>on Reetch That is Superb For You</h2>
                                 <p className="text-light fs-6">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias</p>
                             </div>
                             <div className="call-action-buttons mt-3">
