@@ -306,7 +306,7 @@ class EnhancedJobService(GenericService):
             }
             
             return ServiceResponse.success(
-                data=job,
+                data=job_data,
                 message="Job details retrieved successfully"
             )
             
@@ -599,64 +599,36 @@ class EnhancedJobService(GenericService):
     # ==================== HELPER METHODS ====================
     
     def _serialize_job_detail(self, job: Job) -> Dict[str, Any]:
-        """Serialize job instance with all details"""
+        """
+        Serialize job instance as a flat dict with string keys/values, matching the required API response format.
+        """
         return {
-            'id': job.id,
-            'title': job.title,
-            'slug': job.slug,
-            'company_logo': job.company_logo.url if job.company_logo else None,
-            'job_summary': job.job_summary,
-            'responsibilities': job.responsibilities,
-            'qualifications': job.qualifications,
-            'job_category': {
-                'id': job.job_category.id if job.job_category else None,
-                'label': job.job_category.label if job.job_category else None,
-                'value': job.job_category.value if job.job_category else None,
-            } if job.job_category else None,
-            'job_type': {
-                'id': job.job_type.id if job.job_type else None,
-                'label': job.job_type.label if job.job_type else None,
-                'value': job.job_type.value if job.job_type else None,
-            } if job.job_type else None,
-            'job_level': {
-                'id': job.job_level.id if job.job_level else None,
-                'label': job.job_level.label if job.job_level else None,
-            } if job.job_level else None,
-            'experience_required': {
-                'id': job.experience_required.id if job.experience_required else None,
-                'label': job.experience_required.label if job.experience_required else None,
-            } if job.experience_required else None,
-            'qualification_required': {
-                'id': job.qualification_required.id if job.qualification_required else None,
-                'label': job.qualification_required.label if job.qualification_required else None,
-            } if job.qualification_required else None,
-            'salary': {
-                'min': float(job.min_salary) if job.min_salary else None,
-                'max': float(job.max_salary) if job.max_salary else None,
-                'currency': 'USD',  # Adjust based on your needs
-            },
-            'location': {
-                'permanent_address': job.permanent_address,
-                'temporary_address': job.temporary_address,
-                'city': job.state_city.label if job.state_city else None,
-                'country': job.country.label if job.country else None,
-                'zip_code': job.zip_code,
-                'latitude': float(job.latitude) if job.latitude else None,
-                'longitude': float(job.longitude) if job.longitude else None,
-            },
-            'skills': job.skills.split(',') if job.skills else [],
-            'total_openings': job.total_openings.label if job.total_openings else None,
-            'start_date': job.start_date.isoformat() if job.start_date else None,
-            'deadline': job.deadline.isoformat() if job.deadline else None,
-            'video_url': job.video_url,
-            'posted_by': {
-                'id': job.posted_by.id if job.posted_by else None,
-                'username': job.posted_by.username if job.posted_by else None,
-                'full_name': job.posted_by.get_full_name() if job.posted_by else None,
-            } if job.posted_by else None,
-            'is_active': job.is_active,
-            'created_at': job.created_at.isoformat(),
-            'updated_at': job.updated_at.isoformat(),
+            "title": job.title or "",
+            "jobSummary": job.job_summary or "",
+            "responsibilities": job.responsibilities or "",
+            "qualifications": job.qualifications or "",
+            "skills": job.skills or "",
+            "jobCategory": (job.job_category.value if job.job_category and hasattr(job.job_category, 'value') else ""),
+            "jobType": (job.job_type.value if job.job_type and hasattr(job.job_type, 'value') else ""),
+            "jobLevel": (job.job_level.value if job.job_level and hasattr(job.job_level, 'value') else ""),
+            "experience": (job.experience_required.value if job.experience_required and hasattr(job.experience_required, 'value') else ""),
+            "qualification": (job.qualification_required.value if job.qualification_required and hasattr(job.qualification_required, 'value') else ""),
+            "gender": (job.gender_preference.value if hasattr(job, 'gender_preference') and job.gender_preference and hasattr(job.gender_preference, 'value') else ""),
+            "minSalary": str(job.min_salary) if job.min_salary is not None else "",
+            "maxSalary": str(job.max_salary) if job.max_salary is not None else "",
+            "startDate": job.start_date.isoformat() if job.start_date else "",
+            "deadline": job.deadline.isoformat() if job.deadline else "",
+            "totalOpenings": (job.total_openings.label if job.total_openings and hasattr(job.total_openings, 'label') else ""),
+            "jobFeeType": (job.job_fee_type.value if hasattr(job, 'job_fee_type') and job.job_fee_type and hasattr(job.job_fee_type, 'value') else ""),
+            "permanentAddress": job.permanent_address or "",
+            "temporaryAddress": job.temporary_address or "",
+            "country": (job.country.label if job.country and hasattr(job.country, 'label') else ""),
+            "city": (job.state_city.label if job.state_city and hasattr(job.state_city, 'label') else ""),
+            "zipCode": job.zip_code or "",
+            "videoUrl": job.video_url or "",
+            "latitude": str(job.latitude) if job.latitude is not None else "",
+            "longitude": str(job.longitude) if job.longitude is not None else "",
+            "job_id": str(job.id) if job.id is not None else "",
         }
     
     def get_dropdown_options(self, group_value: str) -> Dict[str, Any]:

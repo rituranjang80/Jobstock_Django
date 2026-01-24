@@ -93,6 +93,7 @@ class JobDetailAPI(APIResponseMixin, APIView):
             data=job
         )
 
+    
         flat = {}
         flat['job_id'] = job.get('id')
         flat['title'] = job.get('title')
