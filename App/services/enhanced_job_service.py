@@ -306,7 +306,7 @@ class EnhancedJobService(GenericService):
             }
             
             return ServiceResponse.success(
-                data=job_data,
+                data=job,
                 message="Job details retrieved successfully"
             )
             

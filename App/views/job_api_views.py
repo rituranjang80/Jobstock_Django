@@ -74,18 +74,61 @@ class JobDetailAPI(APIResponseMixin, APIView):
     @swagger_auto_schema(tags=['Job'], operation_summary='Get job details', operation_description='Get job details.')
     def get(self, request, job_id):
         result = job_service.get_job_details(job_id)
-        if result['success']:
-            return self.api_response(
-                status_code=200,
-                message="Job details fetched successfully",
-                data=result
-            )
-        else:
+        if not result['success']:
             return self.api_response(
                 status_code=404,
                 message="Job not found",
                 data=None
             )
+
+        job = result['data']
+        # Flatten and camelCase the response
+        def to_camel(s):
+            parts = s.split('_')
+            return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+        
+        return self.api_response(
+            status_code=200,
+            message="Job details fetched successfully",
+            data=job
+        )
+
+        flat = {}
+        flat['job_id'] = job.get('id')
+        flat['title'] = job.get('title')
+        flat['jobSummary'] = job.get('job_summary')
+        flat['responsibilities'] = job.get('responsibilities')
+        flat['qualifications'] = job.get('qualifications')
+        flat['skills'] = ', '.join(job.get('skills', [])) if isinstance(job.get('skills'), list) else job.get('skills')
+        # Related fields: use value or label or fallback to None
+        flat['jobCategory'] = (job.get('job_category') or {}).get('value')
+        flat['jobType'] = (job.get('job_type') or {}).get('value')
+        flat['jobLevel'] = (job.get('job_level') or {}).get('value')
+        flat['experience'] = (job.get('experience_required') or {}).get('value') or (job.get('experience_required') or {}).get('label')
+        flat['qualification'] = (job.get('qualification_required') or {}).get('value') or (job.get('qualification_required') or {}).get('label')
+        flat['gender'] = (job.get('gender_preference') or {}).get('value') or (job.get('gender_preference') or {}).get('label')
+        flat['minSalary'] = job.get('salary', {}).get('min')
+        flat['maxSalary'] = job.get('salary', {}).get('max')
+        flat['startDate'] = job.get('start_date')
+        flat['deadline'] = job.get('deadline')
+        flat['totalOpenings'] = job.get('total_openings')
+        flat['jobFeeType'] = (job.get('job_fee_type') or {}).get('value') or (job.get('job_fee_type') or {}).get('label')
+        # Location fields
+        location = job.get('location', {})
+        flat['permanentAddress'] = location.get('permanent_address')
+        flat['temporaryAddress'] = location.get('temporary_address')
+        flat['country'] = location.get('country')
+        flat['city'] = location.get('city')
+        flat['zipCode'] = location.get('zip_code')
+        flat['latitude'] = location.get('latitude')
+        flat['longitude'] = location.get('longitude')
+        flat['videoUrl'] = job.get('video_url')
+        # Add other fields as needed
+        return self.api_response(
+            status_code=200,
+            message="Job details fetched successfully",
+            data=flat
+        )
 
 
 class JobCreateAPI(APIResponseMixin, APIView):
