@@ -112,7 +112,7 @@ class DropdownMaster(models.Model):
     id = models.AutoField(primary_key=True)
     group = models.ForeignKey(DropdownGroup, on_delete=models.CASCADE, related_name='items')
     label = models.CharField(max_length=200)
-    value = models.CharField(max_length=200)
+    value = models.CharField(max_length=200, unique=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -140,6 +140,7 @@ class Job(models.Model):
     # Job Details
     job_category = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -148,6 +149,7 @@ class Job(models.Model):
     )
     job_type = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -156,6 +158,7 @@ class Job(models.Model):
     )
     job_level = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -163,7 +166,8 @@ class Job(models.Model):
         limit_choices_to={'group__value': 'job_level'}
     )
     experience_required = models.ForeignKey(
-        DropdownMaster, 
+        DropdownMaster,
+        to_field='value', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -172,6 +176,7 @@ class Job(models.Model):
     )
     qualification_required = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -179,7 +184,8 @@ class Job(models.Model):
         limit_choices_to={'group__value': 'qualification'}
     )
     gender_preference = models.ForeignKey(
-        DropdownMaster, 
+        DropdownMaster,
+        to_field='value', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -198,6 +204,7 @@ class Job(models.Model):
     # Additional Details
     total_openings = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -206,6 +213,7 @@ class Job(models.Model):
     )
     job_fee_type = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -219,6 +227,7 @@ class Job(models.Model):
     temporary_address = models.CharField(max_length=500, blank=True, null=True)
     country = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -227,6 +236,7 @@ class Job(models.Model):
     )
     state_city = models.ForeignKey(
         DropdownMaster, 
+        to_field='value',
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -245,8 +255,20 @@ class Job(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+
     def save(self, *args, **kwargs):
+        # Print all FK fields and their values
+        print("Saving:", self)
+        for field in self._meta.fields:
+            if isinstance(field, models.ForeignKey):
+                rel_obj = getattr(self, field.name)
+                print(f"ForeignKey {field.name}: {rel_obj} (id={getattr(rel_obj, 'id', None) if rel_obj else None})")
+                if rel_obj and not rel_obj.pk:
+                    print(f"WARNING: {field.name} is set but does not exist in DB!")
+        super().save(*args, **kwargs)
+        
+    def save2(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)  # Automatically generate the slug from the title
         super().save(*args, **kwargs)

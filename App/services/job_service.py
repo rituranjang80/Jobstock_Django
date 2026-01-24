@@ -155,7 +155,7 @@ class JobService(BaseService):
             user: User posting/updating the job
         """
         # Basic fields
-        job.title = data.get('job_title', '')
+        job.title = data.get('title', '')
         job.job_summary = data.get('job_summary', '')
         job.responsibilities = data.get('responsibilities', '')
         job.qualifications = data.get('qualifications', '')

@@ -54,6 +54,16 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                 "status_code": getattr(response, 'status_code', None),
                 "response": getattr(response, 'data', str(response)),
             })
+            # Log all DB queries if in DEBUG mode
+            from django.conf import settings
+            if getattr(settings, 'DEBUG', False):
+                try:
+                    from django.db import connection
+                    query_logger = logging.getLogger("restapi.dbqueries")
+                    for q in connection.queries:
+                        query_logger.info(f"SQL Query: {q.get('sql')} (Time: {q.get('time')})")
+                except Exception as e:
+                    print(f"DB query logging failed: {e}")
         except Exception as e:
             print(f"Response logging failed: {e}")
        #self.process_exception(request, response)
@@ -134,11 +144,35 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
             if request.path.startswith('/api/') or request.META.get('CONTENT_TYPE', '').startswith('application/json'):
                 # If error_obj is a model instance, serialize its fields
                 if hasattr(error_obj, 'id'):
+                    # Extract all actual error messages if error_message is a dict
+                    import re
+                    raw_error = getattr(error_obj, "error_message", None)
+                    def flatten_error_messages(err):
+                        messages = []
+                        if isinstance(err, dict):
+                            for v in err.values():
+                                if isinstance(v, list):
+                                    for item in v:
+                                        # If DRF ErrorDetail, get string
+                                        msg = str(item)
+                                        # Remove code info if present
+                                        msg = re.sub(r"ErrorDetail\(string='(.*?)', code='.*?'\)", r"\1", msg)
+                                        messages.append(msg)
+                                else:
+                                    messages.append(str(v))
+                        elif isinstance(err, list):
+                            for item in err:
+                                messages.append(str(item))
+                        elif err:
+                            messages.append(str(err))
+                        return messages
+                    error_messages = flatten_error_messages(raw_error)
                     error_json = {
                         "success": False,
                         "error_id": getattr(error_obj, "id", None),
                         "error_type": getattr(error_obj, "error_type", None),
-                        "error_message": getattr(error_obj, "error_message", None),
+                        "error_message": raw_error,
+                        "error_messages": error_messages,
                         "file_path": getattr(error_obj, "file_path", None),
                         "function_name": getattr(error_obj, "function_name", None),
                         "line_number": getattr(error_obj, "line_number", None),
@@ -152,7 +186,6 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                         "environment": getattr(error_obj, "environment", None),
                         "app_call_stack": app_stack,
                         "error_traceback": getattr(error_obj, "error_traceback", None)
-                       
                     }
                 else:
                     error_json = error_obj
