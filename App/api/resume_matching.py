@@ -81,6 +81,15 @@ class MatchJobToResumesAPI(APIResponseMixin, APIView):
         result = ResumeJobMatchingService.get_top_matches_for_job(job_id, limit=20)
         return self.api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
 
+    @swagger_auto_schema(
+        operation_description="Match a job to all resumes (returns top matches) [GET]",
+        tags=["resume_management"],
+        responses={200: openapi.Response("Match started")}
+    )
+    def get(self, request, job_id):
+        result = ResumeJobMatchingService.get_top_matches_for_job(job_id, limit=20)
+        return self.api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
+
 class TopCandidatesForJobAPI(APIResponseMixin, APIView):
     permission_classes = [IsAuthenticated]
 

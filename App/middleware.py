@@ -53,7 +53,15 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                 "user": getattr(request, 'user', None),
                 "status_code": getattr(response, 'status_code', None),
                 "response": getattr(response, 'data', str(response)),
+                "response_type": str(type(response)),
+                "content_type": getattr(response, 'content_type', None),
             })
+            # Debug print for development
+            print(f"[DEBUG] Response type: {type(response)}, Content-Type: {getattr(response, 'content_type', None)}")
+            if hasattr(response, 'data'):
+                print(f"[DEBUG] Response data: {response.data}")
+            else:
+                print(f"[DEBUG] Response content: {getattr(response, 'content', None)}")
             # Log all DB queries if in DEBUG mode
             from django.conf import settings
             if getattr(settings, 'DEBUG', False):
@@ -66,7 +74,7 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                     print(f"DB query logging failed: {e}")
         except Exception as e:
             print(f"Response logging failed: {e}")
-       #self.process_exception(request, response)
+        #self.process_exception(request, response)
         return response
 
     def process_exception(self, request, exception):
