@@ -7,6 +7,13 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from App.services.resume_upload_service import ResumeUploadService
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from django.conf import settings
+import os
+from django.http import FileResponse
 
 
 @login_required
@@ -167,3 +174,44 @@ def api_validate_files(request):
     )
     
     return JsonResponse(result.to_dict())
+
+
+@swagger_auto_schema(method='get', tags=['rpo_admin'], operation_summary='Download resume (RPO Admin)', operation_description='Download a resume file. RPO Admins may download any resume; regular users may download their own.')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_rpo_resume_download(request, resume_id):
+    """
+    GET /api/resumes/download/<id>/
+    Download a resume file. Returns streaming file response.
+    """
+    from App.models import ResumeProcessing
+
+    # Determine rpo admin role
+    user_role = getattr(request.user, 'profile', None)
+    user_role = user_role.role if user_role else 'unknown'
+    is_rpo_admin = user_role == 'rpo_admin' or request.user.groups.filter(name='rpo_admin').exists()
+
+    if not is_rpo_admin and not request.user.is_superuser:
+        # regular users may only download their own resumes
+        try:
+            resume = ResumeProcessing.objects.get(id=resume_id, user=request.user)
+        except ResumeProcessing.DoesNotExist:
+            return Response({'success': False, 'message': 'Access denied or resume not found'}, status=403)
+    else:
+        try:
+            resume = ResumeProcessing.objects.get(id=resume_id)
+        except ResumeProcessing.DoesNotExist:
+            return Response({'success': False, 'message': 'Resume not found'}, status=404)
+
+    # Build absolute path
+    rel = resume.resume_path or ''
+    rel = rel.lstrip('/\\')
+    absolute_path = os.path.join(settings.BASE_DIR, rel)
+    if not os.path.exists(absolute_path):
+        return Response({'success': False, 'message': 'Resume file not found on disk'}, status=404)
+
+    # Stream file back
+    file_handle = open(absolute_path, 'rb')
+    response = FileResponse(file_handle)
+    response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
+    return response
