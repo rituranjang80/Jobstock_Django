@@ -125,7 +125,7 @@ typing_extensions==4.15.0
 # - gunicorn==21.2.0  # WSGI HTTP Server
 # - psycopg2-binary==2.9.9  # PostgreSQL adapter
 # - whitenoise==6.6.0  # Static file serving
-# - django-cors-headers==4.3.1  # CORS handling
+django-cors-headers==4.3.1  # CORS handling
 # - sentry-sdk==1.40.0  # Error tracking
 # ============================================================================
 

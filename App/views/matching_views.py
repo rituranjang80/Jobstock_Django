@@ -112,8 +112,8 @@ def resume_matching_dashboard(request):
     
     # Get ResumeSource companies for dropdown
     try:
-        resume_source_group = DropdownGroup.objects.get(text='ResumeSource', is_active=True)
-        resume_sources = DropdownMaster.objects.filter(group=resume_source_group, is_active=True).order_by('sort_order', 'text')
+        resume_source_group = DropdownGroup.objects.get(value='ResumeSource', is_active=True)
+        resume_sources = DropdownMaster.objects.filter(group=resume_source_group, is_active=True).order_by('sort_order', 'label')
     except DropdownGroup.DoesNotExist:
         resume_sources = []
     
