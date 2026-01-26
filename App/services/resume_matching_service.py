@@ -349,7 +349,7 @@ class ResumeJobMatchingService(BaseService):
             )
             
             # Experience matching (30% weight)
-            job_exp = job.experience_required.text if job.experience_required else ''
+            job_exp = job.experience_required.value if job.experience_required else ''
             exp_analysis = cls.calculate_experience_match(
                 resume.years_of_experience or '',
                 job_exp
@@ -357,7 +357,7 @@ class ResumeJobMatchingService(BaseService):
             
             # Location matching (15% weight)
             resume_loc = resume.resume_json.get('location', '') if resume.resume_json else ''
-            job_loc = job.state_city.text if job.state_city else ''
+            job_loc = job.state_city.value if job.state_city else ''
             loc_analysis = cls.calculate_location_match(resume_loc, job_loc)
             
             # Qualification matching (10% weight) - simplified
@@ -661,8 +661,8 @@ class ResumeJobMatchingService(BaseService):
                     'match_id': match.id,
                     'job_id': match.job.id,
                     'job_title': match.job.title,
-                    'job_category': match.job.job_category.text if match.job.job_category else None,
-                    'job_type': match.job.job_type.text if match.job.job_type else None,
+                    'job_category': match.job.job_category.value if match.job.job_category else None,
+                    'job_type': match.job.job_type.value if match.job.job_type else None,
                     'overall_match': float(match.overall_match_percentage),
                     'match_quality': match.match_quality,
                     'is_recommended': match.is_recommended,

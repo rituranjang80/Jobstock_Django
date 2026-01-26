@@ -74,7 +74,19 @@ class ErrorLoggingMiddleware(MiddlewareMixin):
                     print(f"DB query logging failed: {e}")
         except Exception as e:
             print(f"Response logging failed: {e}")
-        #self.process_exception(request, response)
+
+        # If the response is an error (status_code >= 500), route it through process_exception
+        try:
+            status_code = getattr(response, 'status_code', None)
+            if status_code is not None and int(status_code) >= 500:
+                # Create a generic Exception to pass to process_exception
+                error_message = getattr(response, 'data', None) or getattr(response, 'content', None) or str(response)
+                exception = Exception(f"Error response with status {status_code}: {error_message}")
+                error_response = self.process_exception(request, exception)
+                if error_response is not None:
+                    return error_response
+        except Exception as e:
+            print(f"Error routing error response to process_exception: {e}")
         return response
 
     def process_exception(self, request, exception):
