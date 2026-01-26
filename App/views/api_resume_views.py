@@ -1,3 +1,39 @@
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.conf import settings
+import os
+from django.http import FileResponse
+
+@swagger_auto_schema(method='get', tags=['rpo_admin'], operation_summary='Download resume (RPO Admin)', operation_description='Download a resume file. RPO Admins may download any resume; regular users may download their own.')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def rpo_resume_download(request, resume_id):
+    """
+    Download a resume file by ID. RPO Admins may download any resume; regular users may download their own.
+    """
+    from App.models import ResumeProcessing
+    user = request.user
+    user_role = getattr(user, 'profile', None)
+    user_role = user_role.role if user_role else 'unknown'
+    is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    try:
+        if is_rpo_admin or user.is_superuser:
+            resume = ResumeProcessing.objects.get(id=resume_id)
+        else:
+            resume = ResumeProcessing.objects.get(id=resume_id, user=user)
+    except ResumeProcessing.DoesNotExist:
+        return Response({'success': False, 'message': 'Access denied or resume not found'}, status=404)
+    rel = resume.resume_path or ''
+    rel = rel.lstrip('/\\')
+    absolute_path = os.path.join(settings.BASE_DIR, rel)
+    if not os.path.exists(absolute_path):
+        return Response({'success': False, 'message': 'Resume file not found on disk'}, status=404)
+    file_handle = open(absolute_path, 'rb')
+    response = FileResponse(file_handle)
+    response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
+    return response
 """
 Resume Upload REST API Views
 All logic handled by ResumeUploadService
