@@ -606,10 +606,15 @@ class ResumeJobMatchingService(BaseService):
             
             results = []
             for match in matches:
+                resume = match.resume
+                resume_json = getattr(resume, 'resume_json', None)
+                contact_info = None
+                if resume_json and isinstance(resume_json, dict):
+                    contact_info = resume_json.get('contact_info', None)
                 results.append({
                     'match_id': match.id,
-                    'resume_id': match.resume.id,
-                    'candidate_name': match.resume.user.get_full_name() or match.resume.user.username,
+                    'resume_id': resume.id,
+                    'candidate_name':contact_info['name'] if contact_info else None,# contact_info.name,#resume.user.get_full_name() or resume.user.username,
                     'overall_match': float(match.overall_match_percentage),
                     'match_quality': match.match_quality,
                     'is_recommended': match.is_recommended,
@@ -617,7 +622,13 @@ class ResumeJobMatchingService(BaseService):
                     'experience_match': float(match.experience_match_percentage),
                     'matching_skills': match.matching_skills,
                     'success_reasons': match.success_reasons,
-                    'created_at': match.created_at.isoformat()
+                    'created_at': match.created_at.isoformat(),
+                    'extracted_phone': getattr(resume, 'extracted_phone', None),
+                    'resume_json': resume_json,
+                    'extracted_email': getattr(resume, 'extracted_email', None),
+                    'phones': contact_info['phones'] if contact_info else None,
+                    'emails': contact_info['emails'] if contact_info else None,
+
                 })
             
             return ApiResponse.success(
