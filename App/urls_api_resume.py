@@ -25,6 +25,7 @@ urlpatterns = [
     path('rpo-resume-download/<int:resume_id>/', rpo_resume_download, name='rpo_resume_download'),
     path('rpo-resume-view/<int:resume_id>/', __import__('App.views.api_resume_views').views.api_resume_views.rpo_resume_view_api, name='rpo_resume_view_api'),
     path('rpo-process-resume/<int:resume_id>/', __import__('App.views.api_resume_views').views.api_resume_views.rpo_process_single_resume_api, name='rpo_process_single_resume_api'),
+    path('resume-matching/match-details/<int:match_id>/', __import__('App.views.api_resume_views').views.api_resume_views.view_match_details_api, name='view_match_details_api'),
     path('rpo/resume-list/', __import__('App.api.rpo_resume_list_api').api.rpo_resume_list_api.RPOResumeListAPI.as_view(), name='api_rpo_resume_list'),
     path('dropdown/', __import__('App.api.dropdown_router').api.dropdown_router.DropdownListAPI.as_view(), name='api_dropdown_list'),
     path('', include(router.urls)),

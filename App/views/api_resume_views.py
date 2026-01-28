@@ -1,3 +1,4 @@
+
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -321,4 +322,51 @@ def rpo_resume_view_api(request, resume_id):
         'resume_json': resume.resume_json,
     }
     result = ApiResponse(success=True, message='Resume details retrieved', data=data)
+    return api_response(data=result.data, status_code=result.status_code, message=result.message)
+# --- Resume Matching: Match Details API (REST, Swagger tag: rpo_admin) ---
+@swagger_auto_schema(method='get', tags=['rpo_admin'], operation_summary='View match details (RPO Admin)', operation_description='Retrieve details of a resume-job match by match_id. RPO Admins may view any match; regular users may view their own.')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_match_details_api(request, match_id):
+    """
+    Retrieve details of a resume-job match by match_id. RPO Admins may view any match; regular users may view their own.
+    """
+    user = request.user
+    user_role = getattr(user, 'profile', None)
+    user_role = user_role.role if user_role else 'unknown'
+    is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    from App.utils.response import ApiResponse
+    # Import the model for match details (assume ResumeJobMatch or similar)
+    try:
+        from App.models import ResumeJobMatch
+    except ImportError:
+        result = ApiResponse(success=False, message='ResumeJobMatch model not found', status_code=500)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    try:
+        if is_rpo_admin or user.is_superuser:
+            match = ResumeJobMatch.objects.get(id=match_id)
+        else:
+            match = ResumeJobMatch.objects.get(id=match_id, user=user)
+    except ResumeJobMatch.DoesNotExist:
+        result = ApiResponse(success=False, message='Access denied or match not found', status_code=404)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
+
+    # Prepare response data to match the MVT context
+    # Serialize match object (basic fields)
+    match_data = {
+        'id': match.id,
+        'resume_id': getattr(match, 'resume_id', None),
+        'job_id': getattr(match, 'job_id', None),
+        'score': getattr(match, 'score', None),
+        'status': getattr(match, 'status', None),
+        'created_at': getattr(match, 'created_at', None),
+        'updated_at': getattr(match, 'updated_at', None),
+        # Add more fields as needed
+    }
+    # Add detailed_analysis (should be a dict)
+    context = {
+        'match': match_data,
+        'detailed_analysis': getattr(match, 'detailed_analysis', {}) or {}
+    }
+    result = ApiResponse(success=True, message='Match details retrieved', data=context)
     return api_response(data=result.data, status_code=result.status_code, message=result.message)
