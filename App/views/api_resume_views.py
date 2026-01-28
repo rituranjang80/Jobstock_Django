@@ -27,16 +27,77 @@ def rpo_resume_download(request, resume_id):
     except ResumeProcessing.DoesNotExist:
         result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
         return api_response(data=result.data, status_code=result.status_code, message=result.message)
-    rel = resume.resume_path or ''
-    rel = rel.lstrip('/\\')
-    absolute_path = os.path.join(settings.BASE_DIR, rel)
-    if not os.path.exists(absolute_path):
-        result = ApiResponse(success=False, message='Resume file not found on disk', status_code=404)
+
+
+# --- RPO Process Single Resume API (REST, Swagger tag: rpo_admin) ---
+@swagger_auto_schema(method='post', tags=['rpo_admin'], operation_summary='Process single resume (RPO Admin)', operation_description='Trigger processing of a single resume by ID. RPO Admins may process any resume; regular users may process their own.')
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rpo_process_single_resume_api(request, resume_id):
+    """
+    Trigger processing of a single resume by ID. RPO Admins may process any resume; regular users may process their own.
+    """
+    user = request.user
+    user_role = getattr(user, 'profile', None)
+    user_role = user_role.role if user_role else 'unknown'
+    is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    from App.models import ResumeProcessing
+    from App.utils.response import ApiResponse
+    try:
+        if is_rpo_admin or user.is_superuser:
+            resume = ResumeProcessing.objects.get(id=resume_id)
+        else:
+            resume = ResumeProcessing.objects.get(id=resume_id, user=user)
+    except ResumeProcessing.DoesNotExist:
+        result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
         return api_response(data=result.data, status_code=result.status_code, message=result.message)
-    file_handle = open(absolute_path, 'rb')
-    response = FileResponse(file_handle)
-    response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
-    return response
+
+    # Simulate processing logic (replace with actual processing logic as needed)
+    # For now, just update status to 'processing' and return success
+    resume.status = 'processing'
+    resume.save(update_fields=['status'])
+
+    data = {
+        'id': resume.id,
+        'status': resume.status,
+        'message': 'Resume processing started.'
+    }
+    result = ApiResponse(success=True, message='Resume processing triggered', data=data)
+    return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    #         user_role = getattr(user, 'profile', None)
+    #         user_role = user_role.role if user_role else 'unknown'
+    #         is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    #         try:
+    #             if is_rpo_admin or user.is_superuser:
+    #                 resume = ResumeProcessing.objects.get(id=resume_id)
+    #             else:
+    #                 resume = ResumeProcessing.objects.get(id=resume_id, user=user)
+    #         except ResumeProcessing.DoesNotExist:
+    #             result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
+    #             return api_response(data=result.data, status_code=result.status_code, message=result.message)
+
+    #         # Simulate processing logic (replace with actual processing logic as needed)
+    #         # For now, just update status to 'processing' and return success
+    #         resume.status = 'processing'
+    #         resume.save(update_fields=['status'])
+
+    #         data = {
+    #             'id': resume.id,
+    #             'status': resume.status,
+    #             'message': 'Resume processing started.'
+    #         }
+    #         result = ApiResponse(success=True, message='Resume processing triggered', data=data)
+    #         return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    # rel = resume.resume_path or ''
+    # rel = rel.lstrip('/\\')
+    # absolute_path = os.path.join(settings.BASE_DIR, rel)
+    # if not os.path.exists(absolute_path):
+    #     result = ApiResponse(success=False, message='Resume file not found on disk', status_code=404)
+    #     return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    # file_handle = open(absolute_path, 'rb')
+    # response = FileResponse(file_handle)
+    # response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
+    # return response
 """
 Resume Upload REST API Views
 All logic handled by ResumeUploadService
@@ -211,3 +272,53 @@ def api_response(data=None, status_code=200, message="Success"):
         "status_code": status_code,
         "message": message
     }, status=status_code)
+
+
+# --- RPO Resume View API (REST, Swagger tag: rpo_admin) ---
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from App.models import ResumeProcessing
+from App.utils.response import ApiResponse
+
+@swagger_auto_schema(method='get', tags=['rpo_admin'], operation_summary='View resume details (RPO Admin)', operation_description='Retrieve details of a resume by ID. RPO Admins may view any resume; regular users may view their own.')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def rpo_resume_view_api(request, resume_id):
+    """
+    Retrieve details of a resume by ID. RPO Admins may view any resume; regular users may view their own.
+    """
+    user = request.user
+    user_role = getattr(user, 'profile', None)
+    user_role = user_role.role if user_role else 'unknown'
+    is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    try:
+        if is_rpo_admin or user.is_superuser:
+            resume = ResumeProcessing.objects.get(id=resume_id)
+        else:
+            resume = ResumeProcessing.objects.get(id=resume_id, user=user)
+    except ResumeProcessing.DoesNotExist:
+        result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
+
+    # Prepare response data (customize as needed)
+    data = {
+        'id': resume.id,
+        'user_id': resume.user_id,
+        'original_filename': resume.original_filename,
+        'file_size': resume.file_size,
+        'file_extension': resume.file_extension,
+        'status': resume.status,
+        'created_at': resume.created_at,
+        'updated_at': resume.updated_at,
+        'candidate_name': resume.candidate_name,
+        'extracted_email': resume.extracted_email,
+        'extracted_phone': resume.extracted_phone,
+        'years_of_experience': resume.years_of_experience,
+        'sentiment_score': resume.sentiment_score,
+        'word_count': resume.word_count,
+        'error_message': resume.error_message,
+        'resume_json': resume.resume_json,
+    }
+    result = ApiResponse(success=True, message='Resume details retrieved', data=data)
+    return api_response(data=result.data, status_code=result.status_code, message=result.message)
