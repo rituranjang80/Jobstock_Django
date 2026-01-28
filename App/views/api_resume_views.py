@@ -18,18 +18,21 @@ def rpo_resume_download(request, resume_id):
     user_role = getattr(user, 'profile', None)
     user_role = user_role.role if user_role else 'unknown'
     is_rpo_admin = user_role == 'rpo_admin' or user.groups.filter(name='rpo_admin').exists()
+    from App.utils.response import ApiResponse
     try:
         if is_rpo_admin or user.is_superuser:
             resume = ResumeProcessing.objects.get(id=resume_id)
         else:
             resume = ResumeProcessing.objects.get(id=resume_id, user=user)
     except ResumeProcessing.DoesNotExist:
-        return Response({'success': False, 'message': 'Access denied or resume not found'}, status=404)
+        result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
     rel = resume.resume_path or ''
     rel = rel.lstrip('/\\')
     absolute_path = os.path.join(settings.BASE_DIR, rel)
     if not os.path.exists(absolute_path):
-        return Response({'success': False, 'message': 'Resume file not found on disk'}, status=404)
+        result = ApiResponse(success=False, message='Resume file not found on disk', status_code=404)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
     file_handle = open(absolute_path, 'rb')
     response = FileResponse(file_handle)
     response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
@@ -71,8 +74,7 @@ def api_upload_resumes(request):
     
     # Use service to handle upload
     result = ResumeUploadService.upload_resumes(files, request.user)
-    
-    return JsonResponse(result.to_dict(), status=result.status_code)
+    return api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
 
 
 @login_required
@@ -100,8 +102,7 @@ def api_get_resumes(request):
     
     # Use service to get resumes
     result = ResumeUploadService.get_user_resumes(request.user, limit=limit, offset=offset)
-    
-    return JsonResponse(result.to_dict(), status=result.status_code)
+    return api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
 
 
 @login_required
@@ -121,8 +122,7 @@ def api_delete_resume(request, resume_id):
     """
     # Use service to delete resume
     result = ResumeUploadService.delete_resume(resume_id, request.user)
-    
-    return JsonResponse(result.to_dict(), status=result.status_code)
+    return api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
 
 
 @login_required
@@ -150,8 +150,7 @@ def api_get_statistics(request):
     """
     # Use service to get statistics
     result = ResumeUploadService.get_upload_statistics(request.user)
-    
-    return JsonResponse(result.to_dict(), status=result.status_code)
+    return api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
 
 
 @login_required
@@ -201,5 +200,14 @@ def api_validate_files(request):
         },
         message=f"Validated {len(files)} files"
     )
-    
-    return JsonResponse(result.to_dict())
+    return api_response(data=result.data, status_code=200 if result.success else 400, message=result.message)
+def api_response(data=None, status_code=200, message="Success"):
+    """
+    Unified API response for all endpoints in this module.
+    """
+    from rest_framework.response import Response
+    return Response({
+        "data": data,
+        "status_code": status_code,
+        "message": message
+    }, status=status_code)
