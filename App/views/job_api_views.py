@@ -272,7 +272,12 @@ class MyJobsAPI(APIResponseMixin, APIView):
         sort_order = request.query_params.get('sortOrder', 'desc')
         order_by = f"{'-' if sort_order == 'desc' else ''}{sort_by}"
         # Queryset
-        queryset = job_service.model.objects.select_related(*job_service.SELECT_RELATED).filter(posted_by=request.user)
+        from App.utils.django_utils import get_user_role_from_request
+        queryset = job_service.model.objects.select_related(*job_service.SELECT_RELATED)
+        user_role = get_user_role_from_request(request)
+        # Only RPO Admins see all jobs, others see only their own
+        if user_role != 'rpo_admin':
+            queryset = queryset.filter(posted_by=request.user)
         if filters:
             queryset = queryset.filter(**filters)
         if search_q:
