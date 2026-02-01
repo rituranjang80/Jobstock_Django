@@ -7,7 +7,7 @@ class ResumeProcessingRepository:
     def filter_resumes(
         user,
         is_rpo_admin: bool,
-        job_titles: Optional[List[str]] = None,
+        job_id: Optional[int] = None,
         resumesource_ids: Optional[List[str]] = None,
         status_list: Optional[List[str]] = None,
         sort: str = '-id',
@@ -18,8 +18,8 @@ class ResumeProcessingRepository:
                 qs = qs.filter(user__groups__name='rpo_admin')
             else:
                 qs = qs.filter(user=user)
-        if job_titles:
-            qs = qs.filter(job__title__in=job_titles)
+        if job_id is not None:
+            qs = qs.filter(job__id=job_id)
         if resumesource_ids:
             qs = qs.filter(resumesource__id__in=resumesource_ids)
         if status_list:

@@ -31,7 +31,7 @@ class RPOResumeListAPI(APIResponseMixin, APIView):
         offset = int(request.GET.get('offset', 0))
         sort = request.GET.get('sort', '-id')
         filters = {
-            'job': request.GET.getlist('job'),
+            'job_id': request.query_params.get('filters[job_id]', None),
             'resumesource': request.GET.getlist('resumesource'),
             'status': request.GET.getlist('status'),
         }

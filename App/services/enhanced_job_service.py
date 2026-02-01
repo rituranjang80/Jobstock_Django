@@ -629,6 +629,8 @@ class EnhancedJobService(GenericService):
             "latitude": str(job.latitude) if job.latitude is not None else "",
             "longitude": str(job.longitude) if job.longitude is not None else "",
             "job_id": str(job.id) if job.id is not None else "",
+            "job_posted_by_email": job.posted_by.email if job.posted_by else "",
+            "job_posted_by_name": job.posted_by.first_name + " " + job.posted_by.last_name if job.posted_by else "",
         }
     
     def get_dropdown_options(self, group_value: str) -> Dict[str, Any]:

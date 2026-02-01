@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from drf_yasg.utils import swagger_auto_schema
 
+from App.models import ResumeProcessing
 from App.services.enhanced_job_service import job_service
 from App.services.job_application_service import application_service
 from App.services.job_board_integration_service import job_board_service
@@ -292,6 +293,9 @@ class MyJobsAPI(APIResponseMixin, APIView):
         for job in jobs:
             job_data = job_service._serialize_job_detail(job)
             job_data['application_count'] = JobApplication.objects.filter(job_id=job.id).count()
+            job_data['application_upload_count'] = ResumeProcessing.objects.filter(job_id=job.id).count()
+            # Add posted_by (user id)
+            job_data['posted_by'] = getattr(job, 'posted_by_id', None)
             job_list.append(job_data)
         return self.api_response(
             status_code=200,
