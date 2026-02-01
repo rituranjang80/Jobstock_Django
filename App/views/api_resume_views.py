@@ -10,6 +10,7 @@ from django.http import FileResponse
 @swagger_auto_schema(method='get', tags=['rpo_admin'], operation_summary='Download resume (RPO Admin)', operation_description='Download a resume file. RPO Admins may download any resume; regular users may download their own.')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+
 def rpo_resume_download(request, resume_id):
     """
     Download a resume file by ID. RPO Admins may download any resume; regular users may download their own.
@@ -28,6 +29,17 @@ def rpo_resume_download(request, resume_id):
     except ResumeProcessing.DoesNotExist:
         result = ApiResponse(success=False, message='Access denied or resume not found', status_code=404)
         return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    rel = resume.resume_path or ''
+    rel = rel.lstrip('/\\')
+    absolute_path = os.path.join(settings.BASE_DIR, rel)
+    if not os.path.exists(absolute_path):
+        result = ApiResponse(success=False, message='Resume file not found on disk', status_code=404)
+        return api_response(data=result.data, status_code=result.status_code, message=result.message)
+    file_handle = open(absolute_path, 'rb')
+    response = FileResponse(file_handle)
+    response['Content-Disposition'] = f'attachment; filename="{resume.original_filename}"'
+    return response
+
 
 
 # --- RPO Process Single Resume API (REST, Swagger tag: rpo_admin) ---
