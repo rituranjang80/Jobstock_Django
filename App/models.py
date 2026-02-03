@@ -502,7 +502,15 @@ class ResumeProcessing(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resume_processing')
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='resume_processing', null=True, blank=True)
     job = models.ForeignKey('Job', on_delete=models.SET_NULL, null=True, blank=True, related_name='resume_processings', help_text='Job associated with this resume upload')
-    resumesource = models.ForeignKey('DropdownMaster', on_delete=models.SET_NULL, null=True, blank=True, related_name='resume_processings', help_text='Resume source company')
+    resumesource = models.ForeignKey(
+        'DropdownMaster',
+        to_field='value',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='resume_processings',
+        help_text='Resume source company'
+    )
     
     # File Information
     resume_path = models.CharField(max_length=500, help_text="Path to the uploaded resume file")
